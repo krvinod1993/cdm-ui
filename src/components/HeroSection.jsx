@@ -28,32 +28,33 @@ function HeroSection() {
         </span>
 
         {/* Heading */}
-        <h1 className="max-w-4xl text-5xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl">
-          Drive Your{' '}
+        <h1 className="max-w-4xl text-4xl font-extrabold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+          Find{' '}
           <span className="bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-            Dream
-          </span>
+            Verified Cars
+          </span>{' '}
+          in Noida
         </h1>
 
         {/* Subtext */}
         <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-white/50 sm:text-lg md:text-xl">
-          Premium cars from verified dealers
+          Browse trusted dealers and discover the best deals.
         </p>
 
         {/* CTA Buttons */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/"
+            to="/marketplace"
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-10 py-4 text-sm font-bold uppercase tracking-wider text-black shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30"
           >
-            <span className="relative z-10">Explore Inventory</span>
+            <span className="relative z-10">Browse Cars</span>
             <div className="absolute inset-0 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           </Link>
           <Link
-            to="/dealers"
+            to="/dealer/login"
             className="inline-flex items-center justify-center rounded-full border border-white/20 px-10 py-4 text-sm font-bold uppercase tracking-wider text-white/80 backdrop-blur-sm transition-all duration-300 hover:border-white/40 hover:text-white"
           >
-            Our Dealers
+            Dealer Login
           </Link>
         </div>
 

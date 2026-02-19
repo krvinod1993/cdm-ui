@@ -33,10 +33,10 @@ function CarDetails() {
           {error}
         </p>
         <Link
-          to="/"
+          to="/marketplace"
           className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
         >
-          ← Back to Home
+          ← Back to Marketplace
         </Link>
       </div>
     );
@@ -48,10 +48,10 @@ function CarDetails() {
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
         <p className="text-lg text-gray-500 dark:text-slate-400">Car not found.</p>
         <Link
-          to="/"
+          to="/marketplace"
           className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
         >
-          ← Back to Home
+          ← Back to Marketplace
         </Link>
       </div>
     );
@@ -68,10 +68,10 @@ function CarDetails() {
     <div className="mx-auto max-w-5xl animate-fade-in px-4 py-8 sm:py-12">
       {/* Back link */}
       <Link
-        to="/"
+        to="/marketplace"
         className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-gray-500 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400"
       >
-        ← Back to Home
+        ← Back to Marketplace
       </Link>
 
       {/* ── Main grid: image + info ──────────────── */}

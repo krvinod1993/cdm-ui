@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 
@@ -35,6 +35,12 @@ function getPageNumbers(current, total) {
 }
 
 function InventoryPage() {
+  /* ── City state ────────────────────────────────────── */
+  const [cities, setCities] = useState([]);
+  const [citySlug, setCitySlug] = useState('');
+  const [citiesLoading, setCitiesLoading] = useState(true);
+
+  /* ── Filter state ──────────────────────────────────── */
   const [search, setSearch] = useState('');
   const [brand, setBrand] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -48,43 +54,24 @@ function InventoryPage() {
   const [error, setError] = useState(null);
 
   const debouncedSearch = useDebounce(search, 300);
-  const isInitialMount = useRef(true);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
-  const buildQuery = useCallback(
-    (searchVal, pageVal) => {
-      const params = new URLSearchParams();
-      if (searchVal) params.set('search', searchVal);
-      if (brand) params.set('brand', brand);
-      if (minPrice) params.set('min_price', minPrice);
-      if (maxPrice) params.set('max_price', maxPrice);
-      if (sort) params.set('sort', sort);
-      params.set('page', String(pageVal));
-      params.set('limit', String(PAGE_LIMIT));
-      return `?${params.toString()}`;
-    },
-    [brand, minPrice, maxPrice, sort],
-  );
-
-  const fetchCars = useCallback(
-    async (searchVal, pageVal) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await api(`/inventory${buildQuery(searchVal, pageVal)}`);
-        setCars(data.items);
-        setTotal(data.total);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [buildQuery],
-  );
-
+  /* ── Fetch cities on mount ─────────────────────────── */
   useEffect(() => {
-    api('/inventory?limit=500')
+    api('/cities')
+      .then((data) => {
+        setCities(data);
+        if (data.length > 0) {
+          setCitySlug(data[0].slug);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCitiesLoading(false));
+  }, []);
+
+  /* ── Fetch brand list (all active cities, once) ────── */
+  useEffect(() => {
+    api('/cars?limit=500')
       .then((data) => {
         const brands = [...new Set(data.items.map((c) => c.brand))].sort();
         setAllBrands(brands);
@@ -92,31 +79,62 @@ function InventoryPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => { fetchCars('', 1); }, []);
+  /* ── Fetch helper (builds query from current state) ── */
+  const fetchCars = useCallback(
+    (pageVal) => {
+      const params = new URLSearchParams();
+      if (citySlug) params.set('city_slug', citySlug);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (brand) params.set('brand', brand);
+      if (minPrice) params.set('min_price', minPrice);
+      if (maxPrice) params.set('max_price', maxPrice);
+      if (sort) params.set('sort', sort);
+      params.set('page', String(pageVal));
+      params.set('limit', String(PAGE_LIMIT));
 
+      setLoading(true);
+      setError(null);
+      api(`/cars?${params.toString()}`)
+        .then((data) => { setCars(data.items); setTotal(data.total); })
+        .catch((err) => setError(err.message))
+        .finally(() => setLoading(false));
+    },
+    [citySlug, debouncedSearch, brand, minPrice, maxPrice, sort],
+  );
+
+  /* ── Refetch on any filter / city change ───────────── */
   useEffect(() => {
-    if (isInitialMount.current) { isInitialMount.current = false; return; }
+    if (!citySlug) return;
     setPage(1);
-    fetchCars(debouncedSearch, 1);
-  }, [debouncedSearch, brand, minPrice, maxPrice, sort, fetchCars]);
+    fetchCars(1);
+  }, [fetchCars]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* ── Pagination ────────────────────────────────────── */
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages || newPage === page) return;
     setPage(newPage);
-    fetchCars(debouncedSearch, newPage);
+    fetchCars(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /* ── Clear filters (keeps city) ────────────────────── */
   const clearFilters = () => { setSearch(''); setBrand(''); setMinPrice(''); setMaxPrice(''); setSort(''); };
   const hasActiveFilters = search || brand || minPrice || maxPrice || sort;
 
+  /* ── Selected city name for header ─────────────────── */
+  const selectedCity = cities.find((c) => c.slug === citySlug);
+
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* ── Header ───────────────────────────────────── */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Marketplace</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Browse our complete collection of cars</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+            {selectedCity
+              ? `Showing cars in ${selectedCity.name}`
+              : 'Browse our complete collection of cars'}
+          </p>
         </div>
         {!loading && total > 0 && (
           <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-600 dark:bg-sky-500/10 dark:text-sky-400">
@@ -125,7 +143,41 @@ function InventoryPage() {
         )}
       </div>
 
-      {/* Filter Panel */}
+      {/* ── City Selector ────────────────────────────── */}
+      {citiesLoading && (
+        <div className="flex items-center gap-2">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
+          <span className="text-sm text-gray-400 dark:text-slate-500">Loading cities…</span>
+        </div>
+      )}
+
+      {!citiesLoading && cities.length === 1 && (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-sky-500/25">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+          {cities[0].name}
+        </span>
+      )}
+
+      {!citiesLoading && cities.length > 1 && (
+        <div className="flex items-center gap-3">
+          <label htmlFor="city-select" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
+            <svg className="h-4 w-4 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" /></svg>
+            City
+          </label>
+          <select
+            id="city-select"
+            value={citySlug}
+            onChange={(e) => setCitySlug(e.target.value)}
+            className="w-full max-w-xs appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 sm:w-auto"
+          >
+            {cities.map((city) => (
+              <option key={city.slug} value={city.slug}>{city.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* ── Filter Panel ─────────────────────────────── */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -189,15 +241,15 @@ function InventoryPage() {
         </div>
       </div>
 
-      {/* Loading */}
+      {/* ── Loading ──────────────────────────────────── */}
       {loading && (
         <div className="flex items-center justify-center gap-3 py-16">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">Loading inventory…</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading cars…</p>
         </div>
       )}
 
-      {/* Error */}
+      {/* ── Error ────────────────────────────────────── */}
       {!loading && error && (
         <div className="flex flex-col items-center justify-center gap-3 py-16">
           <span className="text-4xl">⚠️</span>
@@ -205,7 +257,7 @@ function InventoryPage() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* ── Empty state ──────────────────────────────── */}
       {!loading && !error && cars.length === 0 && (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 dark:border-slate-800 dark:bg-slate-950/40">
           <span className="text-5xl">🚗</span>
@@ -221,13 +273,17 @@ function InventoryPage() {
           ) : (
             <>
               <p className="text-base font-medium text-gray-700 dark:text-slate-300">No cars available</p>
-              <p className="text-sm text-gray-400 dark:text-slate-500">Our inventory is empty right now. Check back soon for new arrivals.</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500">
+                {selectedCity
+                  ? `No cars listed in ${selectedCity.name} right now. Check back soon.`
+                  : 'Our inventory is empty right now. Check back soon for new arrivals.'}
+              </p>
             </>
           )}
         </div>
       )}
 
-      {/* Car grid */}
+      {/* ── Car grid ─────────────────────────────────── */}
       {!loading && !error && cars.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {cars.map((car) => (
@@ -252,7 +308,7 @@ function InventoryPage() {
         </div>
       )}
 
-      {/* Pagination */}
+      {/* ── Pagination ───────────────────────────────── */}
       {!loading && !error && total > PAGE_LIMIT && (
         <div className="flex flex-col items-center gap-4 pt-2 sm:flex-row sm:justify-between">
           <p className="text-sm text-gray-400 dark:text-slate-500">
