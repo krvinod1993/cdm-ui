@@ -37,7 +37,7 @@ function HomePage() {
             </p>
           </div>
           <Link
-            to="/inventory"
+            to="/"
             className="inline-flex items-center gap-1 text-sm font-semibold text-amber-500 transition hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
           >
             View all inventory
@@ -109,7 +109,7 @@ function HomePage() {
               Join thousands of happy buyers who found their perfect ride through our platform.
             </p>
             <Link
-              to="/inventory"
+              to="/"
               className="mt-8 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-10 py-3.5 text-sm font-bold uppercase tracking-wider text-black shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30"
             >
               Get Started

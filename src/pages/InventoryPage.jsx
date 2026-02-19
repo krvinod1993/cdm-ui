@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
@@ -114,7 +115,7 @@ function InventoryPage() {
       {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Inventory</h1>
+          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Marketplace</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Browse our complete collection of cars</p>
         </div>
         {!loading && total > 0 && (
@@ -230,7 +231,7 @@ function InventoryPage() {
       {!loading && !error && cars.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {cars.map((car) => (
-            <div key={car.id} className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg dark:shadow-slate-950/40 dark:hover:border-sky-500/50 dark:hover:shadow-sky-900/20">
+            <Link key={car.id} to={`/cars/${car.id}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg dark:shadow-slate-950/40 dark:hover:border-sky-500/50 dark:hover:shadow-sky-900/20">
               <div className="h-[200px] w-full overflow-hidden bg-gray-100 dark:bg-slate-800">
                 {car.image_url ? (
                   <img src={`${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`} alt={`${car.brand} ${car.name}`} className="h-full w-full rounded-t-2xl object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -241,11 +242,12 @@ function InventoryPage() {
               <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
                 <span className="inline-flex w-fit items-center rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:bg-slate-800/80 dark:text-slate-300">{car.brand}</span>
                 <h3 className="text-lg font-bold leading-snug text-gray-900 sm:text-xl dark:text-slate-50">{car.name}</h3>
-                <div className="mt-auto border-t border-gray-100 pt-4 dark:border-slate-800/60">
+                <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4 dark:border-slate-800/60">
                   <p className="text-xl font-extrabold text-blue-600 sm:text-2xl dark:text-blue-400">{formatINR(car.price)}</p>
+                  <span className="text-xs text-gray-400 transition group-hover:text-sky-600 dark:text-slate-400 dark:group-hover:text-sky-400">View details →</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

@@ -16,26 +16,43 @@ function CarDetails() {
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [id]);
 
+  /* ── Loading state ─────────────────────────────── */
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <p className="text-sm text-gray-500 dark:text-slate-400">Loading car details...</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
       </div>
     );
   }
 
+  /* ── Error state ───────────────────────────────── */
   if (error) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <p className="text-sm text-rose-500 dark:text-rose-400">Error: {error}</p>
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <p className="text-lg font-medium text-rose-500 dark:text-rose-400">
+          {error}
+        </p>
+        <Link
+          to="/"
+          className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
+        >
+          ← Back to Home
+        </Link>
       </div>
     );
   }
 
+  /* ── Not found ─────────────────────────────────── */
   if (!car) {
     return (
-      <div className="max-w-5xl mx-auto px-6 py-16">
-        <p className="text-gray-500 dark:text-slate-400">Car not found.</p>
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <p className="text-lg text-gray-500 dark:text-slate-400">Car not found.</p>
+        <Link
+          to="/"
+          className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
+        >
+          ← Back to Home
+        </Link>
       </div>
     );
   }
@@ -44,39 +61,81 @@ function CarDetails() {
     ? `${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`
     : null;
 
+  const dealer = car.dealer;
+  const cityName = dealer?.city?.name;
+
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16 animate-fade-in">
-      <Link to="/" className="text-blue-600 hover:underline mb-6 inline-block dark:text-blue-400">
+    <div className="mx-auto max-w-5xl animate-fade-in px-4 py-8 sm:py-12">
+      {/* Back link */}
+      <Link
+        to="/"
+        className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-gray-500 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400"
+      >
         ← Back to Home
       </Link>
 
-      <div className="mb-10 w-full rounded-2xl overflow-hidden bg-gray-100 dark:bg-white">
-        {imageSrc ? (
-          <img src={imageSrc} alt={`${car.brand} ${car.name}`} className="block h-[300px] w-full rounded-2xl object-cover" />
-        ) : (
-          <div className="flex h-[300px] w-full items-center justify-center rounded-2xl bg-gray-100 dark:bg-slate-800/60">
-            <span className="text-3xl text-gray-400 dark:text-slate-600">🚗</span>
-          </div>
-        )}
-      </div>
-
-      <h1 className="text-4xl font-extrabold mb-4 text-gray-900 dark:text-white">{car.name}</h1>
-      <p className="text-lg mb-6 text-gray-500 dark:text-slate-400">{car.brand}</p>
-
-      {car.price && (
-        <p className="text-3xl font-bold text-blue-600 mb-6 dark:text-blue-400">
-          ₹{new Intl.NumberFormat('en-IN').format(car.price)}
-        </p>
-      )}
-
-      {car.dealer && (
-        <div className="bg-gray-100 p-6 rounded-xl shadow-sm border border-gray-200 dark:bg-slate-800 dark:border-slate-700 dark:shadow-lg">
-          <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Dealer</h2>
-          <Link to={`/dealers/${car.dealer.id}`} className="text-blue-600 hover:underline text-base font-medium dark:text-blue-400">
-            {car.dealer.name}
-          </Link>
+      {/* ── Main grid: image + info ──────────────── */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Image */}
+        <div className="overflow-hidden rounded-2xl bg-gray-100 dark:bg-slate-800">
+          {imageSrc ? (
+            <img
+              src={imageSrc}
+              alt={`${car.brand} ${car.name}`}
+              className="h-64 w-full object-cover sm:h-80 lg:h-[400px]"
+            />
+          ) : (
+            <div className="flex h-64 w-full items-center justify-center sm:h-80 lg:h-[400px]">
+              <span className="text-5xl text-gray-300 dark:text-slate-600">🚗</span>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Info panel */}
+        <div className="flex flex-col justify-between gap-6">
+          {/* Top: name, brand, price */}
+          <div>
+            <span className="mb-2 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+              {car.brand}
+            </span>
+
+            <h1 className="mt-3 text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl dark:text-white">
+              {car.name}
+            </h1>
+
+            <p className="mt-4 text-3xl font-bold text-sky-600 dark:text-sky-400">
+              ₹{new Intl.NumberFormat('en-IN').format(car.price)}
+            </p>
+          </div>
+
+          {/* Dealer card */}
+          {dealer && (
+            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800/60 dark:shadow-lg">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                Sold by
+              </p>
+
+              <Link
+                to={`/dealers/${dealer.id}`}
+                className="text-lg font-bold text-gray-900 transition hover:text-sky-600 dark:text-white dark:hover:text-sky-400"
+              >
+                {dealer.name}
+              </Link>
+
+              {cityName && (
+                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                  📍 {cityName}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Contact Dealer button */}
+          <button className="w-full rounded-xl bg-sky-600 px-6 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 active:scale-[0.98] dark:bg-sky-500 dark:hover:bg-sky-600 dark:focus:ring-offset-slate-900 sm:w-auto sm:self-start">
+            Contact Dealer
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

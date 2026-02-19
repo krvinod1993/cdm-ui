@@ -29,11 +29,8 @@ function Navbar() {
         </NavLink>
 
         <div className="flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-slate-200">
-          <NavLink to="/" className={linkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/inventory" className={linkClass}>
-            Inventory
+          <NavLink to="/" className={linkClass} end>
+            Marketplace
           </NavLink>
           <NavLink to="/dealers" className={linkClass}>
             Dealers

@@ -3,7 +3,6 @@ import Layout from './components/Layout';
 import DealerLayout from './components/DealerLayout';
 import AuthGuard from './components/AuthGuard';
 
-import HomePage from './pages/HomePage';
 import InventoryPage from './pages/InventoryPage';
 import DealerPage from './pages/DealerPage';
 import DealerDetails from './pages/DealerDetails';
@@ -20,8 +19,8 @@ function App() {
       <Routes>
         {/* ── Public routes (main site layout) ──────── */}
         <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/" element={<InventoryPage />} />
+          <Route path="/inventory" element={<Navigate to="/" replace />} />
           <Route path="/dealers" element={<DealerPage />} />
           <Route path="/dealers/:id" element={<DealerDetails />} />
           <Route path="/cars/:id" element={<CarDetails />} />

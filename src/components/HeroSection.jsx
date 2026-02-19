@@ -43,7 +43,7 @@ function HeroSection() {
         {/* CTA Buttons */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/inventory"
+            to="/"
             className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-10 py-4 text-sm font-bold uppercase tracking-wider text-black shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30"
           >
             <span className="relative z-10">Explore Inventory</span>
