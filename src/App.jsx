@@ -9,6 +9,7 @@ import DealerPage from './pages/DealerPage';
 import DealerDetails from './pages/DealerDetails';
 import CarDetails from './pages/CarDetails';
 import DealerLogin from './pages/DealerLogin';
+import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import MyCars from './pages/MyCars';
 import AddCar from './pages/AddCar';
@@ -39,7 +40,8 @@ function App() {
           }
         >
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<DealerDashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="overview" element={<DealerDashboard />} />
           <Route path="cars" element={<MyCars />} />
           <Route path="add" element={<AddCar />} />
           <Route path="edit/:id" element={<EditCar />} />
