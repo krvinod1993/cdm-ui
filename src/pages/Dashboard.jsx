@@ -1,46 +1,76 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
 
 function Dashboard() {
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
+
+  /* ── Summary counts from /dashboard-stats ────────── */
+  const [vehicleCount, setVehicleCount] = useState(0);
   const [totalLeads, setTotalLeads] = useState(0);
   const [leadsToday, setLeadsToday] = useState(0);
-  const [leadsLoading, setLeadsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const isExpired = user?.subscription_status === 'EXPIRED';
 
   useEffect(() => {
-    api('/vehicles')
+    /* Counts from unified dashboard-stats endpoint
+       (not gated by subscription — expired dealers still see counts) */
+    api('/dashboard-stats')
       .then((data) => {
-        console.log('[Dashboard] vehicles response:', data);
-        const list = Array.isArray(data.items) ? data.items : [];
-        setVehicles(list);
-      })
-      .catch(() => setVehicles([]))
-      .finally(() => setVehiclesLoading(false));
-
-    api('/lead-stats')
-      .then((data) => {
-        console.log('[Dashboard] lead-stats response:', data);
-        setTotalLeads(data.total ?? 0);
-        setLeadsToday(data.today ?? 0);
+        console.log('[Dashboard] dashboard-stats response:', data);
+        setVehicleCount(data.total_vehicles ?? 0);
+        setTotalLeads(data.total_leads ?? 0);
+        setLeadsToday(data.leads_today ?? 0);
       })
       .catch(() => {
+        setVehicleCount(0);
         setTotalLeads(0);
         setLeadsToday(0);
       })
-      .finally(() => setLeadsLoading(false));
+      .finally(() => setStatsLoading(false));
+
+    /* Vehicle list only for the grid display */
+    api('/vehicles')
+      .then((data) => {
+        console.log('[Dashboard] vehicles response:', data);
+        setVehicles(Array.isArray(data.items) ? data.items : []);
+      })
+      .catch(() => setVehicles([]))
+      .finally(() => setVehiclesLoading(false));
   }, []);
 
-  /* ── Summary stats ─────────────────────────────────── */
-  const totalVehicles = vehicles.length;
-
-  const summaryLoading = vehiclesLoading || leadsLoading;
+  const summaryLoading = statsLoading;
 
   return (
     <div className="mx-auto max-w-7xl space-y-10">
+
+      {/* ════ EXPIRED SUBSCRIPTION BANNER ═════════════ */}
+      {isExpired && (
+        <div className="flex flex-col items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-rose-500/30 dark:bg-rose-500/10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600 ring-1 ring-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:ring-rose-500/30">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-rose-700 dark:text-rose-300">
+              Your subscription has expired. All vehicles are inactive. Please upgrade to continue using the platform.
+            </p>
+          </div>
+          <Link
+            to="/subscription"
+            className="shrink-0 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600"
+          >
+            Upgrade Now
+          </Link>
+        </div>
+      )}
 
       {/* ════ HEADER ═══════════════════════════════════ */}
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-8 shadow-sm sm:p-10 dark:border-gray-700 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800/80 dark:shadow-2xl">
@@ -72,7 +102,7 @@ function Dashboard() {
               {summaryLoading ? (
                 <div className="h-8 w-12 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
               ) : (
-                <p className="text-3xl font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100">{totalVehicles}</p>
+                <p className="text-3xl font-extrabold tabular-nums tracking-tight text-gray-900 dark:text-gray-100">{vehicleCount}</p>
               )}
               <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Total Vehicles</p>
             </div>
@@ -213,7 +243,7 @@ function Dashboard() {
             </h2>
             <div className="h-px w-12 bg-gradient-to-r from-gray-200 to-transparent dark:from-gray-700" />
           </div>
-          {!leadsLoading && totalLeads > 0 && (
+          {!statsLoading && totalLeads > 0 && (
             <Link
               to="/dealer/leads"
               className="text-xs font-semibold text-sky-600 transition hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
@@ -224,7 +254,7 @@ function Dashboard() {
         </div>
 
         {/* Loading */}
-        {leadsLoading && (
+        {statsLoading && (
           <div className="flex items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white px-8 py-16 shadow-sm dark:border-gray-600 dark:bg-gray-800">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-amber-500 dark:border-gray-600 dark:border-t-amber-400" />
             <span className="text-sm text-gray-400 dark:text-gray-500">Loading leads…</span>
@@ -232,7 +262,7 @@ function Dashboard() {
         )}
 
         {/* Empty state */}
-        {!leadsLoading && totalLeads === 0 && (
+        {!statsLoading && totalLeads === 0 && (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-8 py-16 text-center shadow-sm dark:border-gray-600 dark:bg-gray-800">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/20">
               <svg className="h-7 w-7 text-amber-500 dark:text-amber-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -246,7 +276,7 @@ function Dashboard() {
         )}
 
         {/* Leads summary */}
-        {!leadsLoading && totalLeads > 0 && (
+        {!statsLoading && totalLeads > 0 && (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {/* Total Leads card */}
             <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">

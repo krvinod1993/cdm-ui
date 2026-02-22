@@ -10,6 +10,7 @@ import DealerDetails from './pages/DealerDetails';
 import VehicleDetails from './pages/VehicleDetails';
 import VehiclesPage from './pages/VehiclesPage';
 import DealerLogin from './pages/DealerLogin';
+import DealerRegister from './pages/DealerRegister';
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import MyCars from './pages/MyCars';
@@ -22,7 +23,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ── Public routes (main site layout) ──────── */}
+        {/* â”€â”€ Public routes (main site layout) â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/marketplace" element={<InventoryPage />} />
@@ -32,9 +33,10 @@ function App() {
           <Route path="/vehicles" element={<VehiclesPage />} />
           <Route path="/vehicles/:id" element={<VehicleDetails />} />
           <Route path="/dealer/login" element={<DealerLogin />} />
+          <Route path="/register" element={<DealerRegister />} />
         </Route>
 
-        {/* ── Dealer dashboard (auth-guarded layout) ── */}
+        {/* â”€â”€ Dealer dashboard (auth-guarded layout) â”€â”€ */}
         <Route
           path="/dealer"
           element={

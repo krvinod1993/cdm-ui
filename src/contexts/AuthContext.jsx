@@ -33,6 +33,7 @@ export function AuthProvider({ children }) {
         email: data.email,
         role: data.role,
         dealer_id: data.dealer_id,
+        subscription_status: data.subscription_status,
       });
       setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
     } catch {
