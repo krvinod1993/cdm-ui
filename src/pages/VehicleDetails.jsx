@@ -1,12 +1,12 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
 
-function CarDetails() {
+function VehicleDetails() {
   const { id } = useParams();
-  const [car, setCar] = useState(null);
+  const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,14 +23,23 @@ function CarDetails() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/leads/', {
+      const res = await fetch(`${BACKEND_URL}/api/leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ car_id: car?.id, name, phone, message }),
+        body: JSON.stringify({ vehicle_id: Number(id), name, phone, message }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || `Request failed (${res.status})`);
+        const detail = data.detail;
+        let errMsg;
+        if (typeof detail === 'string') {
+          errMsg = detail;
+        } else if (Array.isArray(detail)) {
+          errMsg = detail.map((d) => d.msg || String(d)).join('; ');
+        } else {
+          errMsg = `Request failed (${res.status})`;
+        }
+        throw new Error(errMsg);
       }
       setSubmitted(true);
       setName('');
@@ -45,7 +54,7 @@ function CarDetails() {
 
   useEffect(() => {
     api(`/vehicles/${id}`)
-      .then((data) => { setCar(data); setLoading(false); })
+      .then((data) => { setVehicle(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [id]);
 
@@ -76,10 +85,10 @@ function CarDetails() {
   }
 
   /* -- Not found -- */
-  if (!car) {
+  if (!vehicle) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-lg text-gray-500 dark:text-slate-400">Car not found.</p>
+        <p className="text-lg text-gray-500 dark:text-slate-400">Vehicle not found.</p>
         <Link
           to="/marketplace"
           className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
@@ -90,11 +99,11 @@ function CarDetails() {
     );
   }
 
-  const imageSrc = car.image_url
-    ? `${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`
+  const imageSrc = vehicle.image_url
+    ? `${BACKEND_URL}/${vehicle.image_url.replace(/^\//, '')}`
     : null;
 
-  const dealer = car.dealer;
+  const dealer = vehicle.dealer;
   const cityName = dealer?.city?.name;
 
   return (
@@ -114,7 +123,7 @@ function CarDetails() {
           {imageSrc ? (
             <img
               src={imageSrc}
-              alt={`${car.brand} ${car.name}`}
+              alt={`${vehicle.brand} ${vehicle.name}`}
               className="h-64 w-full object-cover sm:h-80 lg:h-[400px]"
             />
           ) : (
@@ -129,15 +138,15 @@ function CarDetails() {
           {/* Top: name, brand, price */}
           <div>
             <span className="mb-2 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-600 dark:bg-slate-800 dark:text-slate-300">
-              {car.brand}
+              {vehicle.brand}
             </span>
 
             <h1 className="mt-3 text-3xl font-extrabold leading-tight text-gray-900 sm:text-4xl dark:text-white">
-              {car.name}
+              {vehicle.name}
             </h1>
 
             <p className="mt-4 text-3xl font-bold text-sky-600 dark:text-sky-400">
-              &#8377;{new Intl.NumberFormat('en-IN').format(car.price)}
+              &#8377;{new Intl.NumberFormat('en-IN').format(vehicle.price)}
             </p>
           </div>
 
@@ -173,7 +182,7 @@ function CarDetails() {
             Contact Dealer
           </h2>
           <p className="mt-1 text-sm text-gray-400 dark:text-slate-500">
-            Interested in this car? Send a message and the dealer will get back to you.
+            Interested in this vehicle? Send a message and the dealer will get back to you.
           </p>
 
           {submitted ? (
@@ -237,7 +246,7 @@ function CarDetails() {
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Hi, I'm interested in this car..."
+                  placeholder="Hi, I'm interested in this vehicle..."
                   className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>
@@ -268,4 +277,4 @@ function CarDetails() {
   );
 }
 
-export default CarDetails;
+export default VehicleDetails;

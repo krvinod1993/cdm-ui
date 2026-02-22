@@ -72,21 +72,22 @@ function DealerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [leadCount, setLeadCount] = useState(0);
   const { isDark, toggleTheme } = useTheme();
-  const { hasPermission, permissions, loading: authLoading } = useAuth();
+  const { hasPermission, permissions, isAuthLoading } = useAuth();
 
   /* ── Filter nav items by permission (wait for auth to load) */
   const visibleNavItems = useMemo(() => {
-    const result = navItems.filter((item) => {
+    if (isAuthLoading) {
+      // While permissions are loading, only show items that don't require permissions
+      return navItems.filter((item) => !item.requiredPermission);
+    }
+    return navItems.filter((item) => {
       if (!item.requiredPermission) return true;
-      if (authLoading) return false;           // hide gated items until permissions load
       const perms = Array.isArray(item.requiredPermission)
         ? item.requiredPermission
         : [item.requiredPermission];
       return perms.some((p) => hasPermission(p));
     });
-    console.log('[Sidebar] authLoading:', authLoading, 'permissions:', permissions, 'visible:', result.map((i) => i.label));
-    return result;
-  }, [hasPermission, permissions, authLoading]);
+  }, [hasPermission, permissions, isAuthLoading]);
 
   /* ── Fetch lead count for sidebar badge ─────────────── */
   useEffect(() => {

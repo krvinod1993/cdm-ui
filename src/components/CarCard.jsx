@@ -11,7 +11,7 @@ function CarCard({ car }) {
 
   return (
     <Link
-      to={`/cars/${id}`}
+      to={`/vehicles/${id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg dark:shadow-slate-950/40 dark:hover:border-sky-500/50 dark:hover:shadow-sky-900/20"
     >
       {/* Image */}

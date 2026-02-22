@@ -7,9 +7,8 @@ import HomePage from './pages/HomePage';
 import InventoryPage from './pages/InventoryPage';
 import DealerPage from './pages/DealerPage';
 import DealerDetails from './pages/DealerDetails';
-import CarDetails from './pages/CarDetails';
+import VehicleDetails from './pages/VehicleDetails';
 import VehiclesPage from './pages/VehiclesPage';
-import VehicleDetailPage from './pages/VehicleDetailPage';
 import DealerLogin from './pages/DealerLogin';
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
@@ -31,8 +30,7 @@ function App() {
           <Route path="/dealers" element={<DealerPage />} />
           <Route path="/dealers/:id" element={<DealerDetails />} />
           <Route path="/vehicles" element={<VehiclesPage />} />
-          <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-          <Route path="/cars/:id" element={<CarDetails />} />
+          <Route path="/vehicles/:id" element={<VehicleDetails />} />
           <Route path="/dealer/login" element={<DealerLogin />} />
         </Route>
 

@@ -287,7 +287,7 @@ function InventoryPage() {
       {!loading && !error && cars.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {cars.map((car) => (
-            <Link key={car.id} to={`/cars/${car.id}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg dark:shadow-slate-950/40 dark:hover:border-sky-500/50 dark:hover:shadow-sky-900/20">
+            <Link key={car.id} to={`/vehicles/${car.id}`} className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-slate-800 dark:bg-gradient-to-b dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg dark:shadow-slate-950/40 dark:hover:border-sky-500/50 dark:hover:shadow-sky-900/20">
               <div className="h-[200px] w-full overflow-hidden bg-gray-100 dark:bg-slate-800">
                 {car.image_url ? (
                   <img src={`${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`} alt={`${car.brand} ${car.name}`} className="h-full w-full rounded-t-2xl object-cover transition-transform duration-300 group-hover:scale-105" />

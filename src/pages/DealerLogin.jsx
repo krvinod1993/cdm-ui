@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 function DealerLogin() {
   const navigate = useNavigate();
+  const { refreshAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -19,6 +21,7 @@ function DealerLogin() {
         body: JSON.stringify({ email, password }),
       });
       localStorage.setItem('access_token', data.access_token);
+      await refreshAuth();
       navigate('/dealer/dashboard');
     } catch (err) {
       setError(err.message);

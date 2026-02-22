@@ -13,7 +13,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [permissions, setPermissions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   /* -- Fetch current user from /api/me -- */
   const fetchMe = useCallback(async () => {
@@ -21,10 +21,11 @@ export function AuthProvider({ children }) {
     if (!token) {
       setUser(null);
       setPermissions([]);
-      setLoading(false);
+      setIsAuthLoading(false);
       return;
     }
 
+    setIsAuthLoading(true);
     try {
       const data = await api('/me');
       setUser({
@@ -40,7 +41,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setPermissions([]);
     } finally {
-      setLoading(false);
+      setIsAuthLoading(false);
     }
   }, []);
 
@@ -64,13 +65,13 @@ export function AuthProvider({ children }) {
 
   /* -- Re-fetch /me (call after login to hydrate context) -- */
   const refreshAuth = useCallback(() => {
-    setLoading(true);
+    setIsAuthLoading(true);
     return fetchMe();
   }, [fetchMe]);
 
   const value = useMemo(
-    () => ({ user, permissions, loading, hasPermission, logout, refreshAuth }),
-    [user, permissions, loading, hasPermission, logout, refreshAuth],
+    () => ({ user, permissions, isAuthLoading, hasPermission, logout, refreshAuth }),
+    [user, permissions, isAuthLoading, hasPermission, logout, refreshAuth],
   );
 
   return (

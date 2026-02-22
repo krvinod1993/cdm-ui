@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 /* -- Decode JWT payload to get current user email -- */
 function getCurrentUserEmail() {
@@ -21,6 +22,7 @@ function StaffManagement() {
   const [error, setError] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
 
+  const { user: currentUser, hasPermission } = useAuth();
   const currentUserEmail = getCurrentUserEmail();
 
   /* -- Add Staff modal state -- */
@@ -33,6 +35,7 @@ function StaffManagement() {
 
   /* -- Edit Permissions modal state -- */
   const [editTarget, setEditTarget] = useState(null); // staff member being edited
+  const [editName, setEditName] = useState('');
   const [editPerms, setEditPerms] = useState([]);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState(null);
@@ -134,10 +137,11 @@ function StaffManagement() {
     }
   };
 
-  /* -- Open edit modal with pre-filled permissions -- */
+  /* -- Open edit modal with pre-filled permissions (as codes) -- */
   const openEditModal = (member) => {
+    // member.permissions from GET /api/staff is an array of code strings
     const perms = Array.isArray(member.permissions)
-      ? member.permissions
+      ? member.permissions.filter((p) => typeof p === 'string')
       : typeof member.permissions === 'string'
         ? member.permissions.split(',').map((p) => p.trim()).filter(Boolean)
         : [];
@@ -146,10 +150,30 @@ function StaffManagement() {
     setEditError(null);
   };
 
+  /* -- Fetch staff details and initialize editName when edit target changes -- */
+  useEffect(() => {
+    if (!editTarget) return;
+    let cancelled = false;
+    api(`/staff/${editTarget.id}`)
+      .then((data) => {
+        if (!cancelled) {
+          setEditName(data.name || '');
+        }
+      })
+      .catch(() => {
+        // Fallback to list data if individual fetch fails
+        if (!cancelled) {
+          setEditName(editTarget.name || '');
+        }
+      });
+    return () => { cancelled = true; };
+  }, [editTarget]);
+
   /* -- Close edit modal -- */
   const closeEditModal = () => {
     if (editSubmitting) return;
     setEditTarget(null);
+    setEditName('');
     setEditPerms([]);
     setEditError(null);
   };
@@ -168,9 +192,17 @@ function StaffManagement() {
     setEditSubmitting(true);
     setEditError(null);
     try {
-      await api(`/staff/${editTarget.id}/permissions`, {
-        method: 'PATCH',
-        body: JSON.stringify({ permissions: editPerms }),
+      const isOwner = editTarget.role === 'DEALER_OWNER';
+      const payload = {
+        name: editName,
+        is_active: editTarget.is_active ?? editTarget.status === 'Active',
+      };
+      if (!isOwner) {
+        payload.permissions = editPerms;
+      }
+      await api(`/staff/${editTarget.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
       });
       closeEditModal();
       fetchStaff();
@@ -331,19 +363,26 @@ function StaffManagement() {
 
                     {/* Actions */}
                     <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        {member.role === 'DEALER_OWNER' ? (
-                          /* Owner badge — no edit / toggle actions */
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-600 ring-1 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/20">
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                            </svg>
-                            Owner
-                          </span>
-                        ) : (
-                          <>
-                            {/* Toggle Active / Deactivate */}
-                            {(() => {
+                      {(() => {
+                        const isOwnerRow = member.role === 'DEALER_OWNER';
+                        const canEdit =
+                          hasPermission('MANAGE_STAFF') &&
+                          (member.role !== 'DEALER_OWNER' || member.id === currentUser?.id);
+
+                        return (
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Owner badge */}
+                            {isOwnerRow && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-600 ring-1 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/20">
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                                </svg>
+                                Owner
+                              </span>
+                            )}
+
+                            {/* Toggle Active / Deactivate (only for non-owner rows) */}
+                            {!isOwnerRow && (() => {
                               const isActive = member.is_active ?? member.status === 'Active';
                               const isSelf = currentUserEmail && member.email === currentUserEmail;
                               return (
@@ -375,20 +414,22 @@ function StaffManagement() {
                             })()}
 
                             {/* Edit Permissions */}
-                            <button
-                              type="button"
-                              onClick={() => openEditModal(member)}
-                              title="Edit permissions"
-                              className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10"
-                            >
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                              </svg>
-                              Edit
-                            </button>
-                          </>
-                        )}
-                      </div>
+                            {canEdit && (
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(member)}
+                                title="Edit permissions"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10"
+                              >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                                Edit
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}
@@ -570,32 +611,49 @@ function StaffManagement() {
                 </div>
               </div>
 
-              {/* Permissions */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                  Permissions
+              {/* Name */}
+              <div className="space-y-1.5">
+                <label htmlFor="edit-staff-name" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                  Name
                 </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {permissionOptions.map((permission) => (
-                    <label
-                      key={permission.id}
-                      className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm transition ${
-                        editPerms.includes(permission.name)
-                          ? 'border-sky-300 bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-400 dark:ring-sky-500/20'
-                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={editPerms.includes(permission.name)}
-                        onChange={() => toggleEditPerm(permission.name)}
-                        className="h-4 w-4 rounded border-gray-300 text-sky-500 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700"
-                      />
-                      <span className="font-medium">{permission.name}</span>
-                    </label>
-                  ))}
-                </div>
+                <input
+                  id="edit-staff-name"
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Staff member name"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+                />
               </div>
+
+              {/* Permissions (hidden for Dealer Owner) */}
+              {editTarget.role !== 'DEALER_OWNER' && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+                    Permissions
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {permissionOptions.map((permission) => (
+                      <label
+                        key={permission.id}
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-sm transition ${
+                          editPerms.includes(permission.name)
+                            ? 'border-sky-300 bg-sky-50 text-sky-700 ring-1 ring-sky-200 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-400 dark:ring-sky-500/20'
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={editPerms.includes(permission.name)}
+                          onChange={() => toggleEditPerm(permission.name)}
+                          className="h-4 w-4 rounded border-gray-300 text-sky-500 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700"
+                        />
+                        <span className="font-medium">{permission.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Error */}
               {editError && (
