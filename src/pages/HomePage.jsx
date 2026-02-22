@@ -10,7 +10,7 @@ function HomePage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    api('/cars?city_slug=noida&limit=6')
+    api('/vehicles?city_slug=noida&limit=6')
       .then((data) => {
         setCars(data.items ?? data);
         setLoading(false);

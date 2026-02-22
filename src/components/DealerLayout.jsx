@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 
 /* ── Sidebar nav items ──────────────────────────────────── */
 const navItems = [
@@ -14,8 +16,8 @@ const navItems = [
     ),
   },
   {
-    to: '/dealer/cars',
-    label: 'My Cars',
+    to: '/dealer/vehicles',
+    label: 'My Vehicles',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H18.75m-2.25 0h-6m0 0V6.375c0-.621.504-1.125 1.125-1.125h4.072c.382 0 .741.194.949.513l2.897 4.467A1.125 1.125 0 0 1 19.5 10.5H10.5v8.25Z" />
@@ -23,11 +25,31 @@ const navItems = [
     ),
   },
   {
-    to: '/dealer/add',
-    label: 'Add Car',
+    to: '/dealer/vehicles/add',
+    label: 'Add Vehicle',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    ),
+  },
+  {
+    to: '/dealer/staff',
+    label: 'Staff',
+    requiredPermission: ['VIEW_STAFF', 'MANAGE_STAFF'],
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+      </svg>
+    ),
+  },
+  {
+    to: '/dealer/leads',
+    label: 'Leads',
+    badgeKey: 'leads',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z" />
       </svg>
     ),
   },
@@ -48,7 +70,33 @@ const LogoutIcon = () => (
 function DealerLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [leadCount, setLeadCount] = useState(0);
   const { isDark, toggleTheme } = useTheme();
+  const { hasPermission, permissions, loading: authLoading } = useAuth();
+
+  /* ── Filter nav items by permission (wait for auth to load) */
+  const visibleNavItems = useMemo(() => {
+    const result = navItems.filter((item) => {
+      if (!item.requiredPermission) return true;
+      if (authLoading) return false;           // hide gated items until permissions load
+      const perms = Array.isArray(item.requiredPermission)
+        ? item.requiredPermission
+        : [item.requiredPermission];
+      return perms.some((p) => hasPermission(p));
+    });
+    console.log('[Sidebar] authLoading:', authLoading, 'permissions:', permissions, 'visible:', result.map((i) => i.label));
+    return result;
+  }, [hasPermission, permissions, authLoading]);
+
+  /* ── Fetch lead count for sidebar badge ─────────────── */
+  useEffect(() => {
+    api('/my-leads')
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setLeadCount(list.length);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
@@ -76,7 +124,7 @@ function DealerLayout() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -85,7 +133,12 @@ function DealerLayout() {
             onClick={() => setSidebarOpen(false)}
           >
             {item.icon}
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.badgeKey === 'leads' && leadCount > 0 && (
+              <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold tabular-nums text-white">
+                {leadCount > 99 ? '99+' : leadCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

@@ -6,12 +6,16 @@ const BACKEND_URL = 'http://127.0.0.1:8000';
 
 function DealerDashboard() {
   const navigate = useNavigate();
-  const [cars, setCars] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api('/my-cars')
-      .then((data) => setCars(data))
+    api('/vehicles')
+      .then((data) => {
+        console.log('[DealerDashboard] vehicles response:', data);
+        const list = Array.isArray(data.items) ? data.items : [];
+        setVehicles(list);
+      })
       .catch((err) => {
         if (err.status === 401) {
           localStorage.removeItem('access_token');
@@ -25,28 +29,28 @@ function DealerDashboard() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   /* ── Computed stats (from backend status field) ──────── */
-  const totalCars = cars.length;
-  const activeCars = useMemo(() => cars.filter((c) => c.status === 'active').length, [cars]);
-  const inactiveCars = useMemo(() => cars.filter((c) => c.status === 'inactive').length, [cars]);
-  const soldCars = useMemo(() => cars.filter((c) => c.status === 'sold').length, [cars]);
-  const draftCars = useMemo(() => cars.filter((c) => c.status === 'draft').length, [cars]);
+  const totalVehicles = vehicles.length;
+  const activeVehicles = useMemo(() => vehicles.filter((v) => v.status === 'active').length, [vehicles]);
+  const inactiveVehicles = useMemo(() => vehicles.filter((v) => v.status === 'inactive').length, [vehicles]);
+  const soldVehicles = useMemo(() => vehicles.filter((v) => v.status === 'sold').length, [vehicles]);
+  const draftVehicles = useMemo(() => vehicles.filter((v) => v.status === 'draft').length, [vehicles]);
 
   const totalValue = useMemo(
-    () => cars.reduce((sum, c) => sum + (c.price || 0), 0),
-    [cars],
+    () => vehicles.reduce((sum, v) => sum + (v.price || 0), 0),
+    [vehicles],
   );
 
-  /* ── Filtered cars for table ─────────────────────────── */
-  const filteredCars = useMemo(
-    () => (statusFilter === 'all' ? cars : cars.filter((c) => c.status === statusFilter)),
-    [cars, statusFilter],
+  /* ── Filtered vehicles for table ────────────────────── */
+  const filteredVehicles = useMemo(
+    () => (statusFilter === 'all' ? vehicles : vehicles.filter((v) => v.status === statusFilter)),
+    [vehicles, statusFilter],
   );
 
   /* ── Stat cards config ──────────────────────────────── */
   const stats = [
     {
-      label: 'Total Cars',
-      value: String(totalCars),
+      label: 'Total Vehicles',
+      value: String(totalVehicles),
       color: 'sky',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -56,7 +60,7 @@ function DealerDashboard() {
     },
     {
       label: 'Active',
-      value: String(activeCars),
+      value: String(activeVehicles),
       color: 'emerald',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -66,7 +70,7 @@ function DealerDashboard() {
     },
     {
       label: 'Inactive',
-      value: String(inactiveCars),
+      value: String(inactiveVehicles),
       color: 'gray',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -76,7 +80,7 @@ function DealerDashboard() {
     },
     {
       label: 'Sold',
-      value: String(soldCars),
+      value: String(soldVehicles),
       color: 'rose',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -86,7 +90,7 @@ function DealerDashboard() {
     },
     {
       label: 'Drafts',
-      value: String(draftCars),
+      value: String(draftVehicles),
       color: 'amber',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -113,8 +117,8 @@ function DealerDashboard() {
     draft:    { bg: 'bg-amber-100 dark:bg-amber-500/10',     text: 'text-amber-700 dark:text-amber-400',     dot: 'bg-amber-500 dark:bg-amber-400',     ring: 'ring-amber-200 dark:ring-amber-500/20',     label: 'Draft'    },
   };
 
-  const getStatusBadge = (carStatus) => {
-    const s = statusStyles[carStatus];
+  const getStatusBadge = (vehicleStatus) => {
+    const s = statusStyles[vehicleStatus];
     if (s) {
       return (
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ring-1 ${s.bg} ${s.text} ${s.ring}`}>
@@ -126,7 +130,7 @@ function DealerDashboard() {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 ring-1 ring-gray-200 dark:bg-gray-600/15 dark:text-gray-400 dark:ring-gray-600/30">
         <span className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
-        {carStatus || 'Unknown'}
+        {vehicleStatus || 'Unknown'}
       </span>
     );
   };
@@ -170,18 +174,18 @@ function DealerDashboard() {
           </div>
 
           <Link
-            to="/dealer/add"
+            to="/dealer/vehicles/add"
             className="group relative inline-flex w-fit items-center gap-2.5 overflow-hidden rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/30"
           >
             <svg className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Add New Car
+            Add New Vehicle
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
           </Link>
         </div>
 
-        {!loading && totalCars > 0 && (
+        {!loading && totalVehicles > 0 && (
           <div className="relative mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-gray-200 pt-6 dark:border-gray-700">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Portfolio Value</span>
@@ -192,7 +196,7 @@ function DealerDashboard() {
             <div className="hidden h-4 w-px bg-gray-200 sm:block dark:bg-gray-700" />
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Vehicles</span>
-              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalCars}</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalVehicles}</span>
             </div>
           </div>
         )}
@@ -246,24 +250,24 @@ function DealerDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {!loading && cars.length > 0 && (
+            {!loading && vehicles.length > 0 && (
               <select
                 id="dash-status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm outline-none transition-all focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
               >
-                <option value="all">All Statuses ({totalCars})</option>
-                <option value="active">Active ({activeCars})</option>
-                <option value="inactive">Inactive ({inactiveCars})</option>
-                <option value="sold">Sold ({soldCars})</option>
-                <option value="draft">Draft ({draftCars})</option>
+                <option value="all">All Statuses ({totalVehicles})</option>
+                <option value="active">Active ({activeVehicles})</option>
+                <option value="inactive">Inactive ({inactiveVehicles})</option>
+                <option value="sold">Sold ({soldVehicles})</option>
+                <option value="draft">Draft ({draftVehicles})</option>
               </select>
             )}
 
-            {!loading && cars.length > 0 && (
+            {!loading && vehicles.length > 0 && (
               <Link
-                to="/dealer/cars"
+                to="/dealer/vehicles"
                 className="group inline-flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-sky-600 shadow-sm transition-all hover:border-sky-500/30 hover:bg-sky-50 dark:border-gray-600 dark:bg-gray-800 dark:text-sky-400 dark:hover:bg-sky-500/5"
               >
                 View All
@@ -281,7 +285,7 @@ function DealerDashboard() {
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-gray-700">
-                  {['Car', 'Brand', 'Price', 'Status', 'Actions'].map((h) => (
+                  {['Vehicle', 'Brand', 'Price', 'Status', 'Actions'].map((h) => (
                     <th key={h} className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">{h}</th>
                   ))}
                 </tr>
@@ -293,8 +297,8 @@ function DealerDashboard() {
           </div>
         )}
 
-        {/* Empty — no cars */}
-        {!loading && cars.length === 0 && (
+        {/* Empty — no vehicles */}
+        {!loading && vehicles.length === 0 && (
           <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-gray-300 bg-white px-8 py-20 text-center shadow-sm dark:border-gray-600 dark:bg-gray-800">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
               <svg className="h-8 w-8 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -302,24 +306,24 @@ function DealerDashboard() {
               </svg>
             </div>
             <div>
-              <p className="text-base font-semibold text-gray-700 dark:text-gray-200">No cars in your inventory</p>
+              <p className="text-base font-semibold text-gray-700 dark:text-gray-200">No vehicles in your inventory</p>
               <p className="mt-1.5 text-sm text-gray-400 dark:text-gray-500">Get started by adding your first vehicle listing.</p>
             </div>
-            <Link to="/dealer/add" className="mt-1 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/30">
+            <Link to="/dealer/vehicles/add" className="mt-1 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/20 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-sky-500/30">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-              Add Your First Car
+              Add Your First Vehicle
             </Link>
           </div>
         )}
 
         {/* Table */}
-        {!loading && cars.length > 0 && filteredCars.length > 0 && (
+        {!loading && vehicles.length > 0 && filteredVehicles.length > 0 && (
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-700">
-                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Car</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Vehicle</th>
                     <th className="hidden px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 sm:table-cell dark:text-gray-300">Brand</th>
                     <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Price</th>
                     <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Status</th>
@@ -327,37 +331,37 @@ function DealerDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {filteredCars.slice(0, 5).map((car) => {
-                    const imgSrc = car.image_url
-                      ? `${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`
+                  {filteredVehicles.slice(0, 5).map((vehicle) => {
+                    const imgSrc = vehicle.image_url
+                      ? `${BACKEND_URL}/${vehicle.image_url.replace(/^\//, '')}`
                       : null;
                     return (
-                      <tr key={car.id} className="group transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <tr key={vehicle.id} className="group transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3.5">
                             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
                               {imgSrc ? (
-                                <img src={imgSrc} alt={`${car.brand} ${car.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                                <img src={imgSrc} alt={`${vehicle.brand} ${vehicle.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
                               ) : (
                                 <div className="flex h-full w-full items-center justify-center text-sm text-gray-400 dark:text-gray-500">🚗</div>
                               )}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">{car.name}</p>
-                              <p className="mt-0.5 text-xs text-gray-400 sm:hidden dark:text-gray-500">{car.brand}</p>
+                              <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">{vehicle.name}</p>
+                              <p className="mt-0.5 text-xs text-gray-400 sm:hidden dark:text-gray-500">{vehicle.brand}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="hidden px-6 py-4 text-gray-500 sm:table-cell dark:text-gray-400">{car.brand}</td>
-                        <td className="px-6 py-4"><span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(car.price)}</span></td>
-                        <td className="px-6 py-4">{getStatusBadge(car.status)}</td>
+                        <td className="hidden px-6 py-4 text-gray-500 sm:table-cell dark:text-gray-400">{vehicle.brand}</td>
+                        <td className="px-6 py-4"><span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(vehicle.price)}</span></td>
+                        <td className="px-6 py-4">{getStatusBadge(vehicle.status)}</td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
-                            <Link to={`/dealer/edit/${car.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition-all hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10">
+                            <Link to={`/dealer/vehicles/${vehicle.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition-all hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10">
                               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
                               Edit
                             </Link>
-                            <Link to={`/cars/${car.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                            <Link to={`/vehicles/${vehicle.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-200">
                               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                               View
                             </Link>
@@ -373,9 +377,9 @@ function DealerDashboard() {
             {/* Footer */}
             <div className="flex flex-col items-center justify-between gap-2 border-t border-gray-100 bg-gray-50/80 px-6 py-3.5 sm:flex-row dark:border-gray-700 dark:bg-gray-700">
               <p className="text-xs text-gray-400 dark:text-gray-300">
-                Showing <span className="font-semibold text-gray-700 dark:text-gray-100">{Math.min(filteredCars.length, 5)}</span> of{' '}
-                <span className="font-semibold text-gray-700 dark:text-gray-100">{filteredCars.length}</span>{' '}
-                {statusFilter !== 'all' ? `${statusFilter} ` : ''}cars
+                Showing <span className="font-semibold text-gray-700 dark:text-gray-100">{Math.min(filteredVehicles.length, 5)}</span> of{' '}
+                <span className="font-semibold text-gray-700 dark:text-gray-100">{filteredVehicles.length}</span>{' '}
+                {statusFilter !== 'all' ? `${statusFilter} ` : ''}vehicles
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-300">
                 Total value: <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(totalValue)}</span>
@@ -385,13 +389,13 @@ function DealerDashboard() {
         )}
 
         {/* Filtered empty */}
-        {!loading && cars.length > 0 && filteredCars.length === 0 && (
+        {!loading && vehicles.length > 0 && filteredVehicles.length === 0 && (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-8 py-16 text-center shadow-sm dark:border-gray-600 dark:bg-gray-800">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
               <svg className="h-6 w-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" /></svg>
             </div>
             <div>
-              <p className="font-semibold text-gray-700 dark:text-gray-200">No <span className="capitalize text-gray-900 dark:text-gray-100">{statusFilter}</span> cars found</p>
+              <p className="font-semibold text-gray-700 dark:text-gray-200">No <span className="capitalize text-gray-900 dark:text-gray-100">{statusFilter}</span> vehicles found</p>
               <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">Try adjusting the filter to see more results.</p>
             </div>
             <button onClick={() => setStatusFilter('all')} className="mt-1 inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-4 py-2 text-xs font-bold text-gray-600 transition-all hover:border-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -410,27 +414,27 @@ function DealerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Link to="/dealer/add" className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-emerald-500/30 dark:hover:shadow-2xl dark:hover:shadow-emerald-500/5">
+          <Link to="/dealer/vehicles/add" className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-emerald-500/30 dark:hover:shadow-2xl dark:hover:shadow-emerald-500/5">
             <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/[0.05] blur-2xl transition-all duration-500 group-hover:bg-emerald-500/[0.12]" />
             <div className="relative flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 ring-1 ring-emerald-200 transition-all group-hover:bg-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20 dark:group-hover:bg-emerald-500/15 dark:group-hover:ring-emerald-500/30">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">Add a New Car</p>
+                <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">Add a New Vehicle</p>
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">List a new vehicle in your inventory</p>
               </div>
             </div>
           </Link>
 
-          <Link to="/dealer/cars" className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-sky-500/30 dark:hover:shadow-2xl dark:hover:shadow-sky-500/5">
+          <Link to="/dealer/vehicles" className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-sky-500/30 dark:hover:shadow-2xl dark:hover:shadow-sky-500/5">
             <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-sky-500/[0.05] blur-2xl transition-all duration-500 group-hover:bg-sky-500/[0.12]" />
             <div className="relative flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 ring-1 ring-sky-200 transition-all group-hover:bg-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:ring-sky-500/20 dark:group-hover:bg-sky-500/15 dark:group-hover:ring-sky-500/30">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" /></svg>
               </div>
               <div>
-                <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">View My Cars</p>
+                <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">View My Vehicles</p>
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">Manage your existing listings</p>
               </div>
             </div>

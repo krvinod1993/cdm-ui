@@ -8,12 +8,16 @@ import InventoryPage from './pages/InventoryPage';
 import DealerPage from './pages/DealerPage';
 import DealerDetails from './pages/DealerDetails';
 import CarDetails from './pages/CarDetails';
+import VehiclesPage from './pages/VehiclesPage';
+import VehicleDetailPage from './pages/VehicleDetailPage';
 import DealerLogin from './pages/DealerLogin';
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import MyCars from './pages/MyCars';
 import AddCar from './pages/AddCar';
 import EditCar from './pages/EditCar';
+import StaffManagement from './pages/StaffManagement';
+import DealerLeads from './pages/DealerLeads';
 
 function App() {
   return (
@@ -26,6 +30,8 @@ function App() {
           <Route path="/inventory" element={<Navigate to="/marketplace" replace />} />
           <Route path="/dealers" element={<DealerPage />} />
           <Route path="/dealers/:id" element={<DealerDetails />} />
+          <Route path="/vehicles" element={<VehiclesPage />} />
+          <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
           <Route path="/cars/:id" element={<CarDetails />} />
           <Route path="/dealer/login" element={<DealerLogin />} />
         </Route>
@@ -42,9 +48,11 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="overview" element={<DealerDashboard />} />
-          <Route path="cars" element={<MyCars />} />
-          <Route path="add" element={<AddCar />} />
-          <Route path="edit/:id" element={<EditCar />} />
+          <Route path="vehicles" element={<MyCars />} />
+          <Route path="vehicles/add" element={<AddCar />} />
+          <Route path="vehicles/:id" element={<EditCar />} />
+          <Route path="staff" element={<StaffManagement />} />
+          <Route path="leads" element={<DealerLeads />} />
         </Route>
       </Routes>
     </BrowserRouter>

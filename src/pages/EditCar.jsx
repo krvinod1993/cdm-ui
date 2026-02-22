@@ -16,18 +16,29 @@ function EditCar() {
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
   const [price, setPrice] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [categories, setCategories] = useState([]);
   const [existingImageUrl, setExistingImageUrl] = useState(null);
   const [newImage, setNewImage] = useState(null);
   const [newPreview, setNewPreview] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
+  /* ── Fetch categories on mount ─────────────────────── */
   useEffect(() => {
-    async function fetchCar() {
+    api('/vehicle-categories')
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  /* ── Fetch vehicle details ───────────────────────── */
+  useEffect(() => {
+    async function fetchVehicle() {
       try {
-        const data = await api(`/cars/${id}`);
+        const data = await api(`/vehicles/${id}`);
         setName(data.name);
         setBrand(data.brand);
         setPrice(String(data.price));
+        setCategoryId(data.category_id ? String(data.category_id) : '');
         setExistingImageUrl(data.image_url || null);
       } catch (err) {
         if (err.status === 401) { localStorage.removeItem('access_token'); navigate('/dealer/login', { replace: true }); return; }
@@ -36,7 +47,7 @@ function EditCar() {
         setPageLoading(false);
       }
     }
-    fetchCar();
+    fetchVehicle();
   }, [id, navigate]);
 
   const previewUrl = newPreview || (existingImageUrl ? `${BACKEND_URL}/${existingImageUrl.replace(/^\//, '')}` : null);
@@ -63,10 +74,11 @@ function EditCar() {
       formData.append('name', name);
       formData.append('brand', brand);
       formData.append('price', price);
+      formData.append('category_id', categoryId);
       if (newImage) formData.append('image', newImage);
-      await api(`/cars/${id}`, { method: 'PUT', body: formData });
-      toast.success('Car updated successfully!');
-      navigate('/dealer/cars');
+      await api(`/vehicles/${id}`, { method: 'PUT', body: formData });
+      toast.success('Vehicle updated successfully!');
+      navigate('/dealer/vehicles');
     } catch (err) {
       if (err.status === 401) { localStorage.removeItem('access_token'); navigate('/dealer/login', { replace: true }); return; }
       toast.error(err.message);
@@ -79,7 +91,7 @@ function EditCar() {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-32">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-        <p className="text-sm text-gray-500 dark:text-slate-400">Loading car details…</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">Loading vehicle details…</p>
       </div>
     );
   }
@@ -90,11 +102,11 @@ function EditCar() {
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-500/10">
           <svg className="h-7 w-7 text-rose-500 dark:text-rose-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Unable to load car</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-50">Unable to load vehicle</h2>
         <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">{pageError}</p>
-        <Link to="/dealer/cars" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
+        <Link to="/dealer/vehicles" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-          Back to My Cars
+          Back to My Vehicles
         </Link>
       </div>
     );
@@ -104,11 +116,11 @@ function EditCar() {
     <div className="mx-auto max-w-2xl space-y-8">
       {/* Header */}
       <div>
-        <Link to="/dealer/cars" className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
+        <Link to="/dealer/vehicles" className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-          Back to My Cars
+          Back to My Vehicles
         </Link>
-        <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Edit Car</h1>
+        <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Edit Vehicle</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Update the details for <span className="font-medium text-gray-700 dark:text-slate-200">{brand} {name}</span>.</p>
       </div>
 
@@ -173,12 +185,29 @@ function EditCar() {
           </div>
         </div>
 
+        {/* Category */}
+        <div className="space-y-1.5">
+          <label htmlFor="edit-category" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Category <span className="text-rose-500">*</span></label>
+          <select
+            id="edit-category"
+            required
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Actions */}
         <div className="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-slate-800">
           <button type="submit" disabled={formLoading} className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
             {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Saving…</>) : 'Save Changes'}
           </button>
-          <Link to="/dealer/cars" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
+          <Link to="/dealer/vehicles" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
         </div>
       </form>
     </div>

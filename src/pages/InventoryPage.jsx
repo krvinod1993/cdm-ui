@@ -71,7 +71,7 @@ function InventoryPage() {
 
   /* ── Fetch brand list (all active cities, once) ────── */
   useEffect(() => {
-    api('/cars?limit=500')
+    api('/vehicles?limit=500')
       .then((data) => {
         const brands = [...new Set(data.items.map((c) => c.brand))].sort();
         setAllBrands(brands);
@@ -94,7 +94,7 @@ function InventoryPage() {
 
       setLoading(true);
       setError(null);
-      api(`/cars?${params.toString()}`)
+      api(`/vehicles?${params.toString()}`)
         .then((data) => { setCars(data.items); setTotal(data.total); })
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false));

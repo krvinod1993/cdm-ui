@@ -44,7 +44,7 @@ function CarDetails() {
   };
 
   useEffect(() => {
-    api(`/cars/${id}`)
+    api(`/vehicles/${id}`)
       .then((data) => { setCar(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [id]);

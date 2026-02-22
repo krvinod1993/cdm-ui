@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
@@ -11,9 +11,19 @@ function AddCar() {
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
   const [price, setPrice] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [specifications, setSpecifications] = useState('');
+  const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
+
+  /* ── Fetch categories on mount ─────────────────────── */
+  useEffect(() => {
+    api('/vehicle-categories')
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0] || null;
@@ -41,10 +51,12 @@ function AddCar() {
       formData.append('name', name);
       formData.append('brand', brand);
       formData.append('price', price);
+      formData.append('category_id', categoryId);
+      if (specifications.trim()) formData.append('specifications', specifications.trim());
       if (image) formData.append('image', image);
-      await api('/cars', { method: 'POST', body: formData });
-      toast.success('Car added successfully!');
-      navigate('/dealer/cars');
+      await api('/vehicles', { method: 'POST', body: formData });
+      toast.success('Vehicle added successfully!');
+      navigate('/dealer/vehicles');
     } catch (err) {
       if (err.status === 401) {
         localStorage.removeItem('access_token');
@@ -61,11 +73,11 @@ function AddCar() {
     <div className="mx-auto max-w-2xl space-y-8">
       {/* Header */}
       <div>
-        <Link to="/dealer/cars" className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
+        <Link to="/dealer/vehicles" className="inline-flex items-center gap-1 text-sm font-medium text-sky-600 transition hover:text-sky-500 dark:text-sky-400 dark:hover:text-sky-300">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
-          Back to My Cars
+          Back to My Vehicles
         </Link>
-        <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Add New Car</h1>
+        <h1 className="mt-3 text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Add New Vehicle</h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">Fill in the details below to list a new vehicle.</p>
       </div>
 
@@ -119,12 +131,45 @@ function AddCar() {
           </div>
         </div>
 
+        {/* Category */}
+        <div className="space-y-1.5">
+          <label htmlFor="vehicle-category" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Category <span className="text-rose-500">*</span></label>
+          <select
+            id="vehicle-category"
+            required
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+          >
+            <option value="">Select a category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Specifications (optional) */}
+        <div className="space-y-1.5">
+          <label htmlFor="vehicle-specs" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
+            Specifications <span className="text-gray-400 dark:text-slate-600">(optional)</span>
+          </label>
+          <textarea
+            id="vehicle-specs"
+            rows={4}
+            value={specifications}
+            onChange={(e) => setSpecifications(e.target.value)}
+            className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+            placeholder='e.g. {"engine": "2.0L", "fuel": "Petrol", "mileage": "15 km/l"}'
+          />
+          <p className="text-xs text-gray-400 dark:text-slate-500">Enter as JSON key-value pairs.</p>
+        </div>
+
         {/* Actions */}
         <div className="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-slate-800">
           <button type="submit" disabled={formLoading} className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
-            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Adding…</>) : 'Add Car'}
+            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Adding…</>) : 'Add Vehicle'}
           </button>
-          <Link to="/dealer/cars" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
+          <Link to="/dealer/vehicles" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
         </div>
       </form>
     </div>
