@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../services/api';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
 const PAGE_LIMIT = 6;
@@ -56,30 +55,34 @@ function InventoryPage() {
   const debouncedSearch = useDebounce(search, 300);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
-  /* ── Fetch cities on mount ─────────────────────────── */
+  /* ── Fetch cities on mount (public, no auth) ─────────── */
   useEffect(() => {
-    api('/cities')
+    fetch(`${BACKEND_URL}/api/cities`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
-        setCities(data);
-        if (data.length > 0) {
-          setCitySlug(data[0].slug);
+        const list = Array.isArray(data) ? data : [];
+        setCities(list);
+        if (list.length > 0) {
+          setCitySlug(list[0].slug);
         }
       })
       .catch(() => {})
       .finally(() => setCitiesLoading(false));
   }, []);
 
-  /* ── Fetch brand list (all active cities, once) ────── */
+  /* ── Fetch brand list (public, no auth) ──────────────── */
   useEffect(() => {
-    api('/vehicles?limit=500')
+    fetch(`${BACKEND_URL}/api/public/vehicles?limit=500`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
-        const brands = [...new Set(data.items.map((c) => c.brand))].sort();
+        const list = Array.isArray(data.data) ? data.data : data.items ?? [];
+        const brands = [...new Set(list.map((c) => c.brand))].sort();
         setAllBrands(brands);
       })
       .catch(() => {});
   }, []);
 
-  /* ── Fetch helper (builds query from current state) ── */
+  /* ── Fetch helper (public endpoint, no auth) ────────── */
   const fetchCars = useCallback(
     (pageVal) => {
       const params = new URLSearchParams();
@@ -94,8 +97,12 @@ function InventoryPage() {
 
       setLoading(true);
       setError(null);
-      api(`/vehicles?${params.toString()}`)
-        .then((data) => { setCars(data.items); setTotal(data.total); })
+      fetch(`${BACKEND_URL}/api/public/vehicles?${params.toString()}`)
+        .then((res) => {
+          if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.detail || `Request failed (${res.status})`); });
+          return res.json();
+        })
+        .then((data) => { setCars(Array.isArray(data.data) ? data.data : data.items ?? []); setTotal(data.total ?? 0); })
         .catch((err) => setError(err.message))
         .finally(() => setLoading(false));
     },

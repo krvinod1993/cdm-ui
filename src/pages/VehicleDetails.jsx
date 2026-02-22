@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../services/api';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
 
@@ -53,7 +52,11 @@ function VehicleDetails() {
   };
 
   useEffect(() => {
-    api(`/vehicles/${id}`)
+    fetch(`${BACKEND_URL}/api/public/vehicles/${id}`)
+      .then((res) => {
+        if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.detail || `Request failed (${res.status})`); });
+        return res.json();
+      })
       .then((data) => { setVehicle(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [id]);
