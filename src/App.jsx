@@ -1,62 +1,50 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import DealerLayout from './components/DealerLayout';
-import AuthGuard from './components/AuthGuard';
-
-import HomePage from './pages/HomePage';
-import InventoryPage from './pages/InventoryPage';
-import DealerPage from './pages/DealerPage';
-import DealerDetails from './pages/DealerDetails';
-import VehicleDetails from './pages/VehicleDetails';
-import VehiclesPage from './pages/VehiclesPage';
-import DealerLogin from './pages/DealerLogin';
-import DealerRegister from './pages/DealerRegister';
-import Dashboard from './pages/Dashboard';
-import DealerDashboard from './pages/DealerDashboard';
-import MyCars from './pages/MyCars';
-import AddCar from './pages/AddCar';
-import EditCar from './pages/EditCar';
-import StaffManagement from './pages/StaffManagement';
-import DealerLeads from './pages/DealerLeads';
+import { Routes, Route } from "react-router-dom";
+import PublicLayout from "./modules/public/PublicLayout";
+import DealerLayout from "./modules/dealer/DealerLayout";
+import Home from "./modules/public/pages/Home";
+import Marketplace from "./modules/public/pages/InventoryPage";
+import Dealers from "./modules/public/pages/DealerPage";
+import DealerProfile from "./modules/public/pages/DealerProfile";
+import VehicleDetail from "./modules/public/pages/VehicleDetails";
+import DealerRegistration from "./modules/public/pages/DealerRegister";
+import DealerDashboard from "./modules/dealer/pages/DealerDashboard";
+import DealerLogin from "./modules/dealer/pages/DealerLogin";
+import AddCar from "./modules/dealer/pages/AddCar";
+import MyCars from "./modules/dealer/pages/MyCars";
+import EditCar from "./modules/dealer/pages/EditCar";
+import DealerVehicleDetail from "./modules/dealer/pages/DealerVehicleDetail";
+import DealerLeads from "./modules/dealer/pages/DealerLeads";
+import DealerLeadDetail from "./modules/dealer/pages/DealerLeadDetail";
+import StaffManagement from "./modules/dealer/pages/StaffManagement";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* â”€â”€ Public routes (main site layout) â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/marketplace" element={<InventoryPage />} />
-          <Route path="/inventory" element={<Navigate to="/marketplace" replace />} />
-          <Route path="/dealers" element={<DealerPage />} />
-          <Route path="/dealers/:id" element={<DealerDetails />} />
-          <Route path="/vehicles" element={<VehiclesPage />} />
-          <Route path="/vehicles/:id" element={<VehicleDetails />} />
-          <Route path="/dealer/login" element={<DealerLogin />} />
-          <Route path="/register" element={<DealerRegister />} />
-        </Route>
+    <Routes>
+      <Route path="/" element={<PublicLayout />}>
+        <Route index element={<Home />} />
+        <Route path="marketplace" element={<Marketplace />} />
+        <Route path="vehicles/:vehicleId" element={<VehicleDetail />} />
+        <Route path="dealers/:dealerId" element={<DealerProfile />} />
+        <Route path="dealers" element={<Dealers />} />
+        <Route path="dealer/register" element={<DealerRegistration />} />
+      </Route>
 
-        {/* â”€â”€ Dealer dashboard (auth-guarded layout) â”€â”€ */}
-        <Route
-          path="/dealer"
-          element={
-            <AuthGuard>
-              <DealerLayout />
-            </AuthGuard>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="overview" element={<DealerDashboard />} />
-          <Route path="vehicles" element={<MyCars />} />
-          <Route path="vehicles/add" element={<AddCar />} />
-          <Route path="vehicles/:id" element={<EditCar />} />
-          <Route path="staff" element={<StaffManagement />} />
-          <Route path="leads" element={<DealerLeads />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+      <Route path="/dealer/login" element={<DealerLogin />} />
+      <Route path="/dealer/register" element={<DealerRegistration />} />
+
+      <Route path="/dealer" element={<DealerLayout />}>
+        <Route path="dashboard" element={<DealerDashboard />} />
+        <Route path="vehicles/add" element={<AddCar />} />
+        <Route path="vehicles" element={<MyCars />} />
+        <Route path="vehicles/:vehicleId" element={<DealerVehicleDetail />} />
+        <Route path="vehicles/:id/edit" element={<EditCar />} />
+        <Route path="leads" element={<DealerLeads />} />
+        <Route path="leads/:leadId" element={<DealerLeadDetail />} />
+        <Route path="staff" element={<StaffManagement />} />
+      </Route>
+    </Routes>
   );
 }
 
 export default App;
+
