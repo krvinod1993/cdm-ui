@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../../shared/services/api';
 import { useToast } from '../../../shared/contexts/ToastContext';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function EditCar() {
   const { id } = useParams();
@@ -23,14 +23,14 @@ function EditCar() {
   const [newPreview, setNewPreview] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
-  /* â”€â”€ Fetch categories on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch categories on mount ----------------------- */
   useEffect(() => {
     api('/vehicle-categories')
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch(() => setCategories([]));
   }, []);
 
-  /* â”€â”€ Fetch vehicle details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch vehicle details ------------------------- */
   useEffect(() => {
     async function fetchVehicle() {
       try {
@@ -91,7 +91,7 @@ function EditCar() {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-32">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-        <p className="text-sm text-gray-500 dark:text-slate-400">Loading vehicle detailsâ€¦</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400">Loading vehicle details…</p>
       </div>
     );
   }
@@ -178,9 +178,9 @@ function EditCar() {
 
         {/* Price */}
         <div className="space-y-1.5">
-          <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Price (â‚¹) <span className="text-rose-500">*</span></label>
+          <label htmlFor="edit-price" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Price (₹) <span className="text-rose-500">*</span></label>
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-slate-500">â‚¹</span>
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-slate-500">₹</span>
             <input id="edit-price" type="number" required min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-8 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" placeholder="e.g. 35000" />
           </div>
         </div>
@@ -205,7 +205,7 @@ function EditCar() {
         {/* Actions */}
         <div className="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-slate-800">
           <button type="submit" disabled={formLoading} className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
-            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Savingâ€¦</>) : 'Save Changes'}
+            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Saving…</>) : 'Save Changes'}
           </button>
           <Link to="/dealer/vehicles" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
         </div>

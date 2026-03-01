@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 const PAGE_LIMIT = 12;
 
 function formatINR(value) {
@@ -12,7 +12,7 @@ function formatINR(value) {
   }).format(value);
 }
 
-/* â”€â”€ Debounce hook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Debounce hook ------------------------------------- */
 function useDebounce(value, delay = 300) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -23,21 +23,21 @@ function useDebounce(value, delay = 300) {
 }
 
 function VehiclesPage() {
-  /* â”€â”€ Vehicle / pagination state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Vehicle / pagination state ---------------------- */
   const [vehicles, setVehicles] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Filter state ------------------------------------ */
   const [search, setSearch] = useState('');
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
-  /* â”€â”€ Category dropdown options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Category dropdown options ----------------------- */
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
@@ -46,7 +46,7 @@ function VehiclesPage() {
 
   const hasActiveFilters = search || brand || category || minPrice || maxPrice;
 
-  /* â”€â”€ Fetch categories on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch categories on mount ----------------------- */
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/vehicle-categories`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -58,7 +58,7 @@ function VehiclesPage() {
       .finally(() => setCategoriesLoading(false));
   }, []);
 
-  /* â”€â”€ Fetch vehicles (public, no auth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch vehicles (public, no auth) ---------------- */
   const fetchVehicles = useCallback(
     async (pageVal) => {
       setLoading(true);
@@ -92,13 +92,13 @@ function VehiclesPage() {
     [debouncedSearch, brand, category, minPrice, maxPrice],
   );
 
-  /* â”€â”€ Refetch when filters change â†’ reset to page 1 â”€â”€ */
+  /* -- Refetch when filters change → reset to page 1 -- */
   useEffect(() => {
     setPage(1);
     fetchVehicles(1);
   }, [fetchVehicles]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* â”€â”€ Pagination handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Pagination handler ------------------------------ */
   const goToPage = (newPage) => {
     if (newPage < 1 || newPage > totalPages || newPage === page) return;
     setPage(newPage);
@@ -106,7 +106,7 @@ function VehiclesPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* â”€â”€ Clear all filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Clear all filters ------------------------------- */
   const clearFilters = () => {
     setSearch('');
     setBrand('');
@@ -117,7 +117,7 @@ function VehiclesPage() {
 
   return (
     <div className="space-y-8">
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Header ----------------------------------------- */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">
@@ -134,7 +134,7 @@ function VehiclesPage() {
         )}
       </div>
 
-      {/* â”€â”€ Filter Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Filter Panel ----------------------------------- */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ function VehiclesPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by nameâ€¦"
+                placeholder="Search by name…"
                 className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
               />
             </div>
@@ -211,7 +211,7 @@ function VehiclesPage() {
           <div>
             <label htmlFor="veh-min" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Min Price</label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">â‚¹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">₹</span>
               <input
                 id="veh-min"
                 type="number"
@@ -228,7 +228,7 @@ function VehiclesPage() {
           <div>
             <label htmlFor="veh-max" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Max Price</label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">â‚¹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">₹</span>
               <input
                 id="veh-max"
                 type="number"
@@ -243,18 +243,18 @@ function VehiclesPage() {
         </div>
       </div>
 
-      {/* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Loading ---------------------------------------- */}
       {loading && (
         <div className="flex items-center justify-center gap-3 py-16">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">Loading vehiclesâ€¦</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading vehicles…</p>
         </div>
       )}
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Error ------------------------------------------ */}
       {!loading && error && (
         <div className="flex flex-col items-center justify-center gap-3 py-16">
-          <span className="text-4xl">âš ï¸</span>
+          <span className="text-4xl">⚠️</span>
           <p className="text-sm text-rose-500 dark:text-rose-400">Error: {error}</p>
           <button
             onClick={() => { setPage(1); fetchVehicles(1); }}
@@ -265,10 +265,10 @@ function VehiclesPage() {
         </div>
       )}
 
-      {/* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Empty state ------------------------------------ */}
       {!loading && !error && vehicles.length === 0 && (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 dark:border-slate-800 dark:bg-slate-950/40">
-          <span className="text-5xl">ðŸš—</span>
+          <span className="text-5xl">🚗</span>
           {hasActiveFilters ? (
             <>
               <p className="text-base font-medium text-gray-700 dark:text-slate-300">
@@ -300,7 +300,7 @@ function VehiclesPage() {
         </div>
       )}
 
-      {/* â”€â”€ Vehicle grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Vehicle grid ----------------------------------- */}
       {!loading && !error && vehicles.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {vehicles.map((v) => {
@@ -324,7 +324,7 @@ function VehiclesPage() {
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-slate-800/60">
-                      <span className="text-3xl text-gray-400 dark:text-slate-600">ðŸš—</span>
+                      <span className="text-3xl text-gray-400 dark:text-slate-600">🚗</span>
                     </div>
                   )}
                 </div>
@@ -368,7 +368,7 @@ function VehiclesPage() {
                       {formatINR(v.price)}
                     </p>
                     <span className="text-xs text-gray-400 transition group-hover:text-sky-600 dark:text-slate-400 dark:group-hover:text-sky-400">
-                      View details â†’
+                      View details →
                     </span>
                   </div>
                 </div>
@@ -378,13 +378,13 @@ function VehiclesPage() {
         </div>
       )}
 
-      {/* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Pagination ------------------------------------- */}
       {!loading && !error && total > PAGE_LIMIT && (
         <div className="flex flex-col items-center gap-4 pt-2 sm:flex-row sm:justify-between">
           <p className="text-sm text-gray-400 dark:text-slate-500">
             Showing{' '}
             <span className="font-medium text-gray-700 dark:text-slate-300">
-              {(page - 1) * PAGE_LIMIT + 1}â€“{Math.min(page * PAGE_LIMIT, total)}
+              {(page - 1) * PAGE_LIMIT + 1}–{Math.min(page * PAGE_LIMIT, total)}
             </span>{' '}
             of{' '}
             <span className="font-medium text-gray-700 dark:text-slate-300">{total}</span>{' '}

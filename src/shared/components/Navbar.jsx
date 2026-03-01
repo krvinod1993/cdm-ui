@@ -1,9 +1,12 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext.tsx';
 
-function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp }) {
+function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp, embedded = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const token = localStorage.getItem('access_token');
   const { isDark: contextIsDark, toggleTheme: contextToggleTheme } = useTheme();
   const isDark = isDarkProp ?? contextIsDark;
@@ -22,23 +25,40 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp }) {
         : 'text-gray-700 dark:text-slate-200'
     }`;
 
-  return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+  const mobileLinkClass = ({ isActive }) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition ${
+      isActive
+        ? 'bg-sky-500/10 text-sky-600 dark:text-sky-300'
+        : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800'
+    }`;
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const navContent = (
+    <>
+      <div className="flex h-16 items-center justify-between gap-6">
         <NavLink
           to="/"
-          className="text-xl font-semibold tracking-tight text-sky-600 dark:text-sky-400"
+          className="shrink-0 text-xl font-semibold tracking-tight text-sky-600 dark:text-sky-400"
         >
           CDM
         </NavLink>
 
-        <div className="flex items-center gap-6 text-sm font-medium text-gray-700 dark:text-slate-200">
-          <Link to="/">Home</Link>
+        <div className="hidden flex-wrap items-center justify-end gap-6 text-sm font-medium text-gray-700 dark:text-slate-200 md:flex">
+          <NavLink to="/" className={linkClass}>
+            Home
+          </NavLink>
           <NavLink to="/marketplace" className={linkClass}>
             Marketplace
           </NavLink>
-          <Link to="/dealers">Dealers</Link>
-          <Link to="/dealer/register">Dealer Register</Link>
+          <NavLink to="/dealers" className={linkClass}>
+            Dealers
+          </NavLink>
+          <NavLink to="/dealer/register" className={linkClass}>
+            Dealer Register
+          </NavLink>
 
           {token ? (
             <>
@@ -67,9 +87,13 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp }) {
             </NavLink>
           )}
 
-          <button onClick={openAuthModal}>Sign In</button>
+          <button
+            onClick={openAuthModal}
+            className="rounded-lg px-2 py-1.5 transition hover:text-sky-600 dark:hover:text-sky-400"
+          >
+            Sign In
+          </button>
 
-          {/* Theme toggle */}
           <button
             onClick={toggleTheme}
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-lg transition hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
@@ -79,8 +103,82 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp }) {
             {isDark ? 'L' : 'D'}
           </button>
         </div>
-      </nav>
-    </header>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-sm transition hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+            aria-label="Toggle theme"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? 'L' : 'D'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-gray-700 transition hover:bg-gray-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? 'Close' : 'Menu'}
+          </button>
+        </div>
+      </div>
+
+      {isMobileMenuOpen && (
+        <div className="border-t border-gray-200 py-3 dark:border-slate-800 md:hidden">
+          <div className="flex flex-wrap items-center gap-2">
+            <NavLink to="/" className={mobileLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/marketplace" className={mobileLinkClass}>
+              Marketplace
+            </NavLink>
+            <NavLink to="/dealers" className={mobileLinkClass}>
+              Dealers
+            </NavLink>
+            <NavLink to="/dealer/register" className={mobileLinkClass}>
+              Dealer Register
+            </NavLink>
+            {token ? (
+              <>
+                <NavLink to="/dealer/dashboard" className={mobileLinkClass}>
+                  Dashboard
+                </NavLink>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-lg border border-rose-500/60 px-3 py-2 text-sm font-semibold text-rose-500 transition hover:bg-rose-500/10 dark:text-rose-400"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <NavLink to="/dealer/login" className={mobileLinkClass}>
+                Dealer Login
+              </NavLink>
+            )}
+            <button
+              onClick={openAuthModal}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    embedded ? (
+      <nav>{navContent}</nav>
+    ) : (
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-950/80">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <nav>{navContent}</nav>
+        </div>
+      </header>
+    )
   );
 }
 

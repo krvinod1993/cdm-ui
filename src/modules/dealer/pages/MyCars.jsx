@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../../../shared/services/api';
 import { useToast } from '../../../shared/contexts/ToastContext';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function MyCars() {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ function MyCars() {
   const [error, setError] = useState(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
 
-  /* â”€â”€ Delete-confirmation state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Delete-confirmation state ------------------------ */
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -34,7 +34,7 @@ function MyCars() {
     );
   };
 
-  /* â”€â”€ Fetch vehicles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch vehicles ----------------------------------- */
   const fetchMyVehicles = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -59,7 +59,7 @@ function MyCars() {
     fetchMyVehicles();
   }, [fetchMyVehicles]);
 
-  /* â”€â”€ Delete handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Delete handler ----------------------------------- */
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const vehicleName = `${deleteTarget.brand} ${deleteTarget.name}`;
@@ -107,7 +107,7 @@ function MyCars() {
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Header --------------------------------------- */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">My Vehicles</h1>
@@ -128,22 +128,22 @@ function MyCars() {
         </Link>
       </div>
 
-      {/* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Loading -------------------------------------- */}
       {loading && (
         <div className="flex items-center gap-3 py-16">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">Loading your vehiclesâ€¦</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading your vehicles…</p>
         </div>
       )}
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Error ---------------------------------------- */}
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 dark:border-rose-500/20 dark:bg-rose-500/5">
           <p className="text-sm text-rose-600 dark:text-rose-400">Error: {error}</p>
         </div>
       )}
 
-      {/* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Empty state ---------------------------------- */}
       {!loading && !error && vehicles.length === 0 && (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white py-20 dark:border-slate-800 dark:bg-slate-950/40">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-slate-800/60">
@@ -167,7 +167,7 @@ function MyCars() {
         </div>
       )}
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Table ---------------------------------------- */}
       {!loading && !error && vehicles.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-slate-800 dark:shadow-lg">
           <div className="overflow-x-auto">
@@ -194,7 +194,7 @@ function MyCars() {
                             {imgSrc ? (
                               <img src={imgSrc} alt={`${vehicle.brand} ${vehicle.name}`} className="h-full w-full object-cover" />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-base text-gray-400 dark:text-slate-600">ðŸš—</div>
+                              <div className="flex h-full w-full items-center justify-center text-base text-gray-400 dark:text-slate-600">🚗</div>
                             )}
                           </div>
                           <div>
@@ -204,7 +204,7 @@ function MyCars() {
                         </div>
                       </td>
                       <td className="hidden px-5 py-4 text-gray-500 sm:table-cell dark:text-slate-400">{vehicle.brand}</td>
-                      <td className="px-5 py-4 font-semibold text-emerald-600 dark:text-emerald-400">â‚¹{new Intl.NumberFormat('en-IN').format(vehicle.price)}</td>
+                      <td className="px-5 py-4 font-semibold text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(vehicle.price)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           {getStatusBadge(vehicle.status)}
@@ -255,7 +255,7 @@ function MyCars() {
         </div>
       )}
 
-      {/* â”€â”€ Delete Confirmation Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Delete Confirmation Modal ------------------- */}
       {deleteTarget && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 animate-overlay-in bg-black/40 backdrop-blur-sm dark:bg-black/70" onClick={() => !deleting && setDeleteTarget(null)} />
@@ -276,7 +276,7 @@ function MyCars() {
               </button>
               <button onClick={handleDelete} disabled={deleting} className="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50">
                 {deleting ? (
-                  <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Deletingâ€¦</>
+                  <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Deleting…</>
                 ) : (
                   <><svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>Delete</>
                 )}

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 /**
  * Centralized API client.
@@ -7,9 +7,9 @@ const BASE_URL = 'http://127.0.0.1:8000/api';
  * - Automatically attaches Authorization header when a token exists
  * - Parses JSON response & throws on non-2xx status
  *
- * @param {string}  endpoint  â€“ path after /api  (e.g. "/login", "/cars")
- * @param {object}  [options] â€“ fetch options (method, body, headers â€¦)
- * @returns {Promise<any>}    â€“ parsed JSON response
+ * @param {string}  endpoint  – path after /api  (e.g. "/login", "/cars")
+ * @param {object}  [options] – fetch options (method, body, headers …)
+ * @returns {Promise<any>}    – parsed JSON response
  */
 async function api(endpoint, options = {}) {
   const token = localStorage.getItem('access_token');
@@ -24,7 +24,7 @@ async function api(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
+  const res = await fetch(`${BASE_URL}/api${endpoint}`, {
     ...options,
     headers,
   });

@@ -17,7 +17,7 @@ function DealerDetails() {
       .catch((err) => { setError(err.message); setLoading(false); });
   }, [id]);
 
-  /* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Loading ---------------------------------------- */
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -26,33 +26,33 @@ function DealerDetails() {
     );
   }
 
-  /* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Error ------------------------------------------ */
   if (error) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <span className="text-4xl">âš ï¸</span>
+        <span className="text-4xl">⚠️</span>
         <p className="mt-4 text-lg font-medium text-rose-500 dark:text-rose-400">{error}</p>
         <Link
           to="/dealers"
           className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
         >
-          â† Back to Dealers
+          ← Back to Dealers
         </Link>
       </div>
     );
   }
 
-  /* â”€â”€ Not found â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Not found -------------------------------------- */
   if (!dealer) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <span className="text-4xl">ðŸ”</span>
+        <span className="text-4xl">🔍</span>
         <p className="mt-4 text-lg text-gray-500 dark:text-slate-400">Dealer not found.</p>
         <Link
           to="/dealers"
           className="mt-4 inline-block text-sm text-sky-600 hover:underline dark:text-sky-400"
         >
-          â† Back to Dealers
+          ← Back to Dealers
         </Link>
       </div>
     );
@@ -68,10 +68,10 @@ function DealerDetails() {
         to="/dealers"
         className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-gray-500 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400"
       >
-        â† Back to Dealers
+        ← Back to Dealers
       </Link>
 
-      {/* â”€â”€ Dealer Profile Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Dealer Profile Card ---------------------- */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-900/80 dark:to-slate-900/50 dark:shadow-lg">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           {/* Left: avatar + info */}
@@ -132,7 +132,7 @@ function DealerDetails() {
         </div>
       </div>
 
-      {/* â”€â”€ Car Listings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Car Listings ----------------------------- */}
       <section className="mt-10">
         <div className="mb-6 flex items-center gap-3">
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">
@@ -143,7 +143,7 @@ function DealerDetails() {
 
         {cars.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 dark:border-slate-800 dark:bg-slate-950/40">
-            <span className="text-5xl">ðŸš—</span>
+            <span className="text-5xl">🚗</span>
             <p className="text-base font-medium text-gray-700 dark:text-slate-300">
               No cars listed yet
             </p>

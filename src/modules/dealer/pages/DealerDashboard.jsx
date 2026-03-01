@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../../shared/services/api';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function DealerDashboard() {
   const navigate = useNavigate();
@@ -25,10 +25,10 @@ function DealerDashboard() {
       .finally(() => setLoading(false));
   }, [navigate]);
 
-  /* â”€â”€ Status filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Status filter state -------------------------------- */
   const [statusFilter, setStatusFilter] = useState('all');
 
-  /* â”€â”€ Computed stats (from backend status field) â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Computed stats (from backend status field) -------- */
   const totalVehicles = vehicles.length;
   const activeVehicles = useMemo(() => vehicles.filter((v) => v.status === 'active').length, [vehicles]);
   const inactiveVehicles = useMemo(() => vehicles.filter((v) => v.status === 'inactive').length, [vehicles]);
@@ -40,13 +40,13 @@ function DealerDashboard() {
     [vehicles],
   );
 
-  /* â”€â”€ Filtered vehicles for table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Filtered vehicles for table ---------------------- */
   const filteredVehicles = useMemo(
     () => (statusFilter === 'all' ? vehicles : vehicles.filter((v) => v.status === statusFilter)),
     [vehicles, statusFilter],
   );
 
-  /* â”€â”€ Stat cards config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Stat cards config -------------------------------- */
   const stats = [
     {
       label: 'Total Vehicles',
@@ -100,7 +100,7 @@ function DealerDashboard() {
     },
   ];
 
-  /* â”€â”€ Color system â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Color system ------------------------------------- */
   const palette = {
     sky:     { iconBg: 'bg-sky-100 dark:bg-sky-500/15',       iconText: 'text-sky-600 dark:text-sky-400',       glow: 'group-hover:shadow-sky-500/10'     },
     emerald: { iconBg: 'bg-emerald-100 dark:bg-emerald-500/15', iconText: 'text-emerald-600 dark:text-emerald-400', glow: 'group-hover:shadow-emerald-500/10' },
@@ -109,7 +109,7 @@ function DealerDashboard() {
     amber:   { iconBg: 'bg-amber-100 dark:bg-amber-500/15',     iconText: 'text-amber-600 dark:text-amber-400',     glow: 'group-hover:shadow-amber-500/10'   },
   };
 
-  /* â”€â”€ Status badge helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Status badge helper ------------------------------ */
   const statusStyles = {
     active:   { bg: 'bg-emerald-100 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', dot: 'bg-emerald-500 dark:bg-emerald-400', ring: 'ring-emerald-200 dark:ring-emerald-500/20', label: 'Active'   },
     inactive: { bg: 'bg-gray-100 dark:bg-gray-600/15',       text: 'text-gray-600 dark:text-gray-400',       dot: 'bg-gray-400 dark:bg-gray-500',       ring: 'ring-gray-200 dark:ring-gray-600/30',       label: 'Inactive' },
@@ -135,7 +135,7 @@ function DealerDashboard() {
     );
   };
 
-  /* â”€â”€ Skeleton loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Skeleton loader ---------------------------------- */
   const CardSkeleton = () => (
     <div className="h-8 w-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
   );
@@ -150,14 +150,14 @@ function DealerDashboard() {
     </tr>
   );
 
-  /* â”€â”€ Greeting â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Greeting ----------------------------------------- */
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   return (
-    <div className="mx-auto max-w-7xl space-y-10">
+    <div className="w-full space-y-10">
 
-      {/* â•â•â•â• HERO HEADER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* ==== HERO HEADER ============================== */}
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-8 shadow-sm sm:p-10 dark:border-gray-700 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800/80 dark:shadow-2xl">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-sky-500/[0.04] blur-3xl dark:bg-sky-500/[0.07]" />
         <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-violet-500/[0.03] blur-3xl dark:bg-violet-500/[0.05]" />
@@ -190,7 +190,7 @@ function DealerDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Portfolio Value</span>
               <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                â‚¹{new Intl.NumberFormat('en-IN').format(totalValue)}
+                ₹{new Intl.NumberFormat('en-IN').format(totalValue)}
               </span>
             </div>
             <div className="hidden h-4 w-px bg-gray-200 sm:block dark:bg-gray-700" />
@@ -202,7 +202,7 @@ function DealerDashboard() {
         )}
       </div>
 
-      {/* â•â•â•â• STAT CARDS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* ==== STAT CARDS =============================== */}
       <section>
         <div className="mb-5 flex items-center gap-3">
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Overview</h2>
@@ -241,7 +241,7 @@ function DealerDashboard() {
         </div>
       </section>
 
-      {/* â•â•â•â• INVENTORY TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* ==== INVENTORY TABLE ========================== */}
       <section>
         <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -281,23 +281,27 @@ function DealerDashboard() {
 
         {/* Loading */}
         {loading && (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-700">
-                  {['Vehicle', 'Brand', 'Price', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {[...Array(3)].map((_, i) => <TableRowSkeleton key={i} />)}
-              </tbody>
-            </table>
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[800px]">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-gray-700">
+                      {['Vehicle', 'Brand', 'Price', 'Status', 'Actions'].map((h) => (
+                        <th key={h} className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {[...Array(3)].map((_, i) => <TableRowSkeleton key={i} />)}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Empty â€” no vehicles */}
+        {/* Empty — no vehicles */}
         {!loading && vehicles.length === 0 && (
           <div className="flex flex-col items-center gap-5 rounded-2xl border border-dashed border-gray-300 bg-white px-8 py-20 text-center shadow-sm dark:border-gray-600 dark:bg-gray-800">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
@@ -318,60 +322,62 @@ function DealerDashboard() {
 
         {/* Table */}
         {!loading && vehicles.length > 0 && filteredVehicles.length > 0 && (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-700">
-                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Vehicle</th>
-                    <th className="hidden px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 sm:table-cell dark:text-gray-300">Brand</th>
-                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Price</th>
-                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Status</th>
-                    <th className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {filteredVehicles.slice(0, 5).map((vehicle) => {
-                    const imgSrc = vehicle.image_url
-                      ? `${BACKEND_URL}/${vehicle.image_url.replace(/^\//, '')}`
-                      : null;
-                    return (
-                      <tr key={vehicle.id} className="group transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3.5">
-                            <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
-                              {imgSrc ? (
-                                <img src={imgSrc} alt={`${vehicle.brand} ${vehicle.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-sm text-gray-400 dark:text-gray-500">ðŸš—</div>
-                              )}
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-[800px]">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-700">
+                      <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Vehicle</th>
+                      <th className="hidden px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 sm:table-cell dark:text-gray-300">Brand</th>
+                      <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Price</th>
+                      <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Status</th>
+                      <th className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-300">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {filteredVehicles.slice(0, 5).map((vehicle) => {
+                      const imgSrc = vehicle.image_url
+                        ? `${BACKEND_URL}/${vehicle.image_url.replace(/^\//, '')}`
+                        : null;
+                      return (
+                        <tr key={vehicle.id} className="group transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3.5">
+                              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gray-100 ring-1 ring-gray-200 dark:bg-gray-700 dark:ring-gray-600">
+                                {imgSrc ? (
+                                  <img src={imgSrc} alt={`${vehicle.brand} ${vehicle.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-sm text-gray-400 dark:text-gray-500">🚗</div>
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">{vehicle.name}</p>
+                                <p className="mt-0.5 text-xs text-gray-400 sm:hidden dark:text-gray-500">{vehicle.brand}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-gray-900 group-hover:text-gray-700 dark:text-gray-100 dark:group-hover:text-white">{vehicle.name}</p>
-                              <p className="mt-0.5 text-xs text-gray-400 sm:hidden dark:text-gray-500">{vehicle.brand}</p>
+                          </td>
+                          <td className="hidden px-6 py-4 text-gray-500 sm:table-cell dark:text-gray-400">{vehicle.brand}</td>
+                          <td className="px-6 py-4"><span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(vehicle.price)}</span></td>
+                          <td className="px-6 py-4">{getStatusBadge(vehicle.status)}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <Link to={`/dealer/vehicles/${vehicle.id}/edit`} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition-all hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10">
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                                Edit
+                              </Link>
+                              <Link to={`/dealer/vehicles/${vehicle.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-200">
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                                View
+                              </Link>
                             </div>
-                          </div>
-                        </td>
-                        <td className="hidden px-6 py-4 text-gray-500 sm:table-cell dark:text-gray-400">{vehicle.brand}</td>
-                        <td className="px-6 py-4"><span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">â‚¹{new Intl.NumberFormat('en-IN').format(vehicle.price)}</span></td>
-                        <td className="px-6 py-4">{getStatusBadge(vehicle.status)}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link to={`/dealer/vehicles/${vehicle.id}/edit`} className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-600 transition-all hover:border-sky-300 hover:bg-sky-100 dark:border-sky-500/20 dark:bg-sky-500/5 dark:text-sky-400 dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10">
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-                              Edit
-                            </Link>
-                            <Link to={`/dealer/vehicles/${vehicle.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 transition-all hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-200">
-                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                              View
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Footer */}
@@ -382,7 +388,7 @@ function DealerDashboard() {
                 {statusFilter !== 'all' ? `${statusFilter} ` : ''}vehicles
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-300">
-                Total value: <span className="font-bold text-emerald-600 dark:text-emerald-400">â‚¹{new Intl.NumberFormat('en-IN').format(totalValue)}</span>
+                Total value: <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{new Intl.NumberFormat('en-IN').format(totalValue)}</span>
               </p>
             </div>
           </div>
@@ -406,7 +412,7 @@ function DealerDashboard() {
         )}
       </section>
 
-      {/* â•â•â•â• QUICK ACTIONS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+      {/* ==== QUICK ACTIONS ============================ */}
       <section>
         <div className="mb-5 flex items-center gap-3">
           <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Quick Actions</h2>

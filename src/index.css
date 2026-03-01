@@ -17,3 +17,10 @@ html.theme-transitioning *::after {
   from { width: 100%; }
   to   { width: 0%; }
 }
+
+html,
+body,
+#root {
+  width: 100%;
+  overflow-x: hidden;
+}

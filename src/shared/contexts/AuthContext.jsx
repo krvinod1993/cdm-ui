@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
       });
       setPermissions(Array.isArray(data.permissions) ? data.permissions : []);
     } catch {
-      // Token invalid / expired â€” clear it silently
+      // Token invalid / expired — clear it silently
       localStorage.removeItem('access_token');
       setUser(null);
       setPermissions([]);

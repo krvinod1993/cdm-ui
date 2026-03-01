@@ -13,7 +13,7 @@ const statusStyle = {
 };
 
 function formatDate(iso) {
-  if (!iso) return 'â€”';
+  if (!iso) return '—';
   return new Date(iso).toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -29,7 +29,7 @@ function DealerLeads() {
   const [error, setError] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
 
-  /* â”€â”€ Fetch leads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch leads ---------------------------------------- */
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -47,12 +47,12 @@ function DealerLeads() {
     fetchLeads();
   }, [fetchLeads]);
 
-  /* â”€â”€ Status update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Status update -------------------------------------- */
   const handleStatusChange = async (leadId, newStatus) => {
     setUpdatingId(leadId);
     setError(null);
     try {
-      console.log(`[DealerLeads] Updating lead ${leadId} â†’ ${newStatus}`);
+      console.log(`[DealerLeads] Updating lead ${leadId} → ${newStatus}`);
       const response = await api(`/leads/${leadId}`, {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus }),
@@ -69,7 +69,7 @@ function DealerLeads() {
     }
   };
 
-  /* â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Stats ---------------------------------------------- */
   const counts = useMemo(() => {
     const c = { NEW: 0, CONTACTED: 0, CLOSED: 0 };
     leads.forEach((l) => {
@@ -81,7 +81,7 @@ function DealerLeads() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Header ----------------------------------------- */}
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white via-white to-gray-50 p-8 shadow-sm sm:p-10 dark:border-gray-700 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800/80 dark:shadow-2xl">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-amber-500/[0.04] blur-3xl dark:bg-amber-500/[0.07]" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
@@ -113,15 +113,15 @@ function DealerLeads() {
         </div>
       </div>
 
-      {/* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Loading ---------------------------------------- */}
       {loading && (
         <div className="flex items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white px-8 py-20 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-gray-600 dark:border-t-sky-400" />
-          <span className="text-sm text-gray-400 dark:text-gray-500">Loading leadsâ€¦</span>
+          <span className="text-sm text-gray-400 dark:text-gray-500">Loading leads…</span>
         </div>
       )}
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Error ------------------------------------------ */}
       {!loading && error && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center dark:border-rose-500/20 dark:bg-rose-500/5">
           <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{error}</p>
@@ -135,7 +135,7 @@ function DealerLeads() {
         </div>
       )}
 
-      {/* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Empty state ------------------------------------ */}
       {!loading && !error && leads.length === 0 && (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-8 py-20 text-center shadow-sm dark:border-gray-600 dark:bg-gray-800">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:ring-amber-500/20">
@@ -150,7 +150,7 @@ function DealerLeads() {
         </div>
       )}
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Table ------------------------------------------ */}
       {!loading && !error && leads.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-gray-700 dark:shadow-lg">
           <div className="overflow-x-auto">
@@ -226,14 +226,14 @@ function DealerLeads() {
                       {/* Message */}
                       <td className="hidden max-w-[220px] px-5 py-4 md:table-cell">
                         <p className="truncate text-sm text-gray-500 dark:text-gray-400">
-                          {lead.message || 'â€”'}
+                          {lead.message || '—'}
                         </p>
                       </td>
 
                       {/* Vehicle */}
                       <td className="px-5 py-4">
                         <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                          {lead.vehicle_title || lead.car_title || `#${lead.vehicle_id || lead.car_id || 'â€”'}`}
+                          {lead.vehicle_title || lead.car_title || `#${lead.vehicle_id || lead.car_id || '—'}`}
                         </span>
                       </td>
 

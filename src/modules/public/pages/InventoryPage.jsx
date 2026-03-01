@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import api from '../../../shared/services/api';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 const PAGE_LIMIT = 6;
 
 function formatINR(value) {
@@ -10,15 +11,6 @@ function formatINR(value) {
     currency: 'INR',
     maximumFractionDigits: 0,
   }).format(value);
-}
-
-function useDebounce(value, delay = 300) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
 }
 
 function getPageNumbers(current, total) {
@@ -34,12 +26,12 @@ function getPageNumbers(current, total) {
 }
 
 function InventoryPage() {
-  /* â”€â”€ City state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- City state -------------------------------------- */
   const [cities, setCities] = useState([]);
   const [citySlug, setCitySlug] = useState('');
   const [citiesLoading, setCitiesLoading] = useState(true);
 
-  /* â”€â”€ Filter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Filter state ------------------------------------ */
   const [search, setSearch] = useState('');
   const [brand, setBrand] = useState('');
   const [minPrice, setMinPrice] = useState('');
@@ -52,10 +44,9 @@ function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const debouncedSearch = useDebounce(search, 300);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
-  /* â”€â”€ Fetch cities on mount (public, no auth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch cities on mount (public, no auth) ----------- */
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/cities`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -70,7 +61,7 @@ function InventoryPage() {
       .finally(() => setCitiesLoading(false));
   }, []);
 
-  /* â”€â”€ Fetch brand list (public, no auth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch brand list (public, no auth) ---------------- */
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/public/vehicles?limit=500`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -82,41 +73,45 @@ function InventoryPage() {
       .catch(() => {});
   }, []);
 
-  /* â”€â”€ Fetch helper (public endpoint, no auth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-  const fetchCars = useCallback(
-    (pageVal) => {
-      const params = new URLSearchParams();
-      if (citySlug) params.set('city_slug', citySlug);
-      if (debouncedSearch) params.set('search', debouncedSearch);
-      if (brand) params.set('brand', brand);
-      if (minPrice) params.set('min_price', minPrice);
-      if (maxPrice) params.set('max_price', maxPrice);
-      if (sort) params.set('sort', sort);
-      params.set('page', String(pageVal));
-      params.set('limit', String(PAGE_LIMIT));
+  /* -- Fetch helper (public endpoint, no auth) ---------- */
+  const fetchCars = (pageVal) => {
+    const params = new URLSearchParams();
 
-      setLoading(true);
-      setError(null);
-      fetch(`${BACKEND_URL}/api/public/vehicles?${params.toString()}`)
-        .then((res) => {
-          if (!res.ok) return res.json().catch(() => ({})).then((d) => { throw new Error(d.detail || `Request failed (${res.status})`); });
-          return res.json();
-        })
-        .then((data) => { setCars(Array.isArray(data.data) ? data.data : data.items ?? []); setTotal(data.total ?? 0); })
-        .catch((err) => setError(err.message))
-        .finally(() => setLoading(false));
-    },
-    [citySlug, debouncedSearch, brand, minPrice, maxPrice, sort],
-  );
+    if (search) params.append('search', search);
+    if (brand && brand !== 'All') params.append('brand', brand);
+    if (minPrice) params.append('min_price', minPrice);
+    if (maxPrice) params.append('max_price', maxPrice);
+    if (sort) params.append('sort', sort);
+    if (citySlug) params.append('city_slug', citySlug);
+    params.append('page', String(pageVal));
+    params.append('limit', String(PAGE_LIMIT));
 
-  /* â”€â”€ Refetch on any filter / city change â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    setLoading(true);
+    setError(null);
+    api(`/public/vehicles?${params.toString()}`)
+      .then((data) => {
+        setCars(Array.isArray(data.data) ? data.data : data.items ?? []);
+        setTotal(data.total ?? 0);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  };
+
+  /* -- Refetch on filter change ------------------------ */
   useEffect(() => {
     if (!citySlug) return;
     setPage(1);
     fetchCars(1);
-  }, [fetchCars]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search, brand, minPrice, maxPrice, sort]);
 
-  /* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Refetch when city changes ----------------------- */
+  useEffect(() => {
+    if (!citySlug) return;
+    setPage(1);
+    fetchCars(1);
+  }, [citySlug]);
+
+  /* -- Pagination -------------------------------------- */
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > totalPages || newPage === page) return;
     setPage(newPage);
@@ -124,16 +119,16 @@ function InventoryPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /* â”€â”€ Clear filters (keeps city) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Clear filters (keeps city) ---------------------- */
   const clearFilters = () => { setSearch(''); setBrand(''); setMinPrice(''); setMaxPrice(''); setSort(''); };
   const hasActiveFilters = search || brand || minPrice || maxPrice || sort;
 
-  /* â”€â”€ Selected city name for header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Selected city name for header ------------------- */
   const selectedCity = cities.find((c) => c.slug === citySlug);
 
   return (
     <div className="space-y-8">
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Header ------------------------------------- */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-50">Marketplace</h1>
@@ -150,11 +145,11 @@ function InventoryPage() {
         )}
       </div>
 
-      {/* â”€â”€ City Selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- City Selector ------------------------------ */}
       {citiesLoading && (
         <div className="flex items-center gap-2">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-          <span className="text-sm text-gray-400 dark:text-slate-500">Loading citiesâ€¦</span>
+          <span className="text-sm text-gray-400 dark:text-slate-500">Loading cities…</span>
         </div>
       )}
 
@@ -184,7 +179,7 @@ function InventoryPage() {
         </div>
       )}
 
-      {/* â”€â”€ Filter Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Filter Panel ------------------------------- */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -205,7 +200,7 @@ function InventoryPage() {
             <label htmlFor="inv-search" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Search</label>
             <div className="relative">
               <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-              <input id="inv-search" type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by nameâ€¦" className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
+              <input id="inv-search" type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name…" className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
           </div>
 
@@ -222,7 +217,7 @@ function InventoryPage() {
           <div>
             <label htmlFor="inv-min" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Min Price</label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">â‚¹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">₹</span>
               <input id="inv-min" type="number" min="0" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} placeholder="0" className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-7 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
           </div>
@@ -231,7 +226,7 @@ function InventoryPage() {
           <div>
             <label htmlFor="inv-max" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Max Price</label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">â‚¹</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-slate-500">₹</span>
               <input id="inv-max" type="number" min="0" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} placeholder="Any" className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-7 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" />
             </div>
           </div>
@@ -241,33 +236,33 @@ function InventoryPage() {
             <label htmlFor="inv-sort" className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-slate-400">Sort By</label>
             <select id="inv-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
               <option value="">Default</option>
-              <option value="price_asc">Price: Low â†’ High</option>
-              <option value="price_desc">Price: High â†’ Low</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Loading ------------------------------------ */}
       {loading && (
         <div className="flex items-center justify-center gap-3 py-16">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-sky-500 dark:border-slate-700 dark:border-t-sky-400" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">Loading carsâ€¦</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Loading cars…</p>
         </div>
       )}
 
-      {/* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Error -------------------------------------- */}
       {!loading && error && (
         <div className="flex flex-col items-center justify-center gap-3 py-16">
-          <span className="text-4xl">âš ï¸</span>
+          <span className="text-4xl">⚠️</span>
           <p className="text-sm text-rose-500 dark:text-rose-400">Error: {error}</p>
         </div>
       )}
 
-      {/* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Empty state -------------------------------- */}
       {!loading && !error && cars.length === 0 && (
         <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 dark:border-slate-800 dark:bg-slate-950/40">
-          <span className="text-5xl">ðŸš—</span>
+          <span className="text-5xl">🚗</span>
           {hasActiveFilters ? (
             <>
               <p className="text-base font-medium text-gray-700 dark:text-slate-300">No cars match your filters</p>
@@ -290,7 +285,7 @@ function InventoryPage() {
         </div>
       )}
 
-      {/* â”€â”€ Car grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Car grid ----------------------------------- */}
       {!loading && !error && cars.length > 0 && (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {cars.map((car) => (
@@ -299,7 +294,7 @@ function InventoryPage() {
                 {car.image_url ? (
                   <img src={`${BACKEND_URL}/${car.image_url.replace(/^\//, '')}`} alt={`${car.brand} ${car.name}`} className="h-full w-full rounded-t-2xl object-cover transition-transform duration-300 group-hover:scale-105" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center rounded-t-2xl bg-gray-100 dark:bg-slate-800/60"><span className="text-3xl text-gray-400 dark:text-slate-600">ðŸš—</span></div>
+                  <div className="flex h-full w-full items-center justify-center rounded-t-2xl bg-gray-100 dark:bg-slate-800/60"><span className="text-3xl text-gray-400 dark:text-slate-600">🚗</span></div>
                 )}
               </div>
               <div className="flex flex-1 flex-col gap-3 p-5 sm:p-6">
@@ -307,7 +302,7 @@ function InventoryPage() {
                 <h3 className="text-lg font-bold leading-snug text-gray-900 sm:text-xl dark:text-slate-50">{car.name}</h3>
                 <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4 dark:border-slate-800/60">
                   <p className="text-xl font-extrabold text-blue-600 sm:text-2xl dark:text-blue-400">{formatINR(car.price)}</p>
-                  <span className="text-xs text-gray-400 transition group-hover:text-sky-600 dark:text-slate-400 dark:group-hover:text-sky-400">View details â†’</span>
+                  <span className="text-xs text-gray-400 transition group-hover:text-sky-600 dark:text-slate-400 dark:group-hover:text-sky-400">View details →</span>
                 </div>
               </div>
             </Link>
@@ -315,12 +310,12 @@ function InventoryPage() {
         </div>
       )}
 
-      {/* â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Pagination --------------------------------- */}
       {!loading && !error && total > PAGE_LIMIT && (
         <div className="flex flex-col items-center gap-4 pt-2 sm:flex-row sm:justify-between">
           <p className="text-sm text-gray-400 dark:text-slate-500">
             Showing{' '}
-            <span className="font-medium text-gray-700 dark:text-slate-300">{(page - 1) * PAGE_LIMIT + 1}â€“{Math.min(page * PAGE_LIMIT, total)}</span>{' '}
+            <span className="font-medium text-gray-700 dark:text-slate-300">{(page - 1) * PAGE_LIMIT + 1}–{Math.min(page * PAGE_LIMIT, total)}</span>{' '}
             of <span className="font-medium text-gray-700 dark:text-slate-300">{total}</span> cars
           </p>
           <div className="flex items-center gap-1">
@@ -329,7 +324,7 @@ function InventoryPage() {
             </button>
             {getPageNumbers(page, totalPages).map((p, idx) =>
               p === '...' ? (
-                <span key={`ellipsis-${idx}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400 dark:text-slate-600">â€¦</span>
+                <span key={`ellipsis-${idx}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400 dark:text-slate-600">…</span>
               ) : (
                 <button key={p} onClick={() => handlePageChange(p)} className={`inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-lg px-2 text-sm font-medium transition ${p === page ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25' : 'border border-gray-300 text-gray-500 hover:border-gray-400 hover:bg-gray-50 hover:text-gray-700 dark:border-slate-700 dark:text-slate-400 dark:hover:border-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200'}`}>
                   {p}

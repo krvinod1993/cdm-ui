@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function formatINR(value) {
   return new Intl.NumberFormat('en-IN', {
@@ -17,7 +17,7 @@ function VehicleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* â”€â”€ Lead / contact form state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Lead / contact form state --------------------------- */
   const [showForm, setShowForm] = useState(false);
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
@@ -82,7 +82,7 @@ function VehicleDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  /* â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Loading ------------------------------------------- */
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -91,7 +91,7 @@ function VehicleDetailPage() {
     );
   }
 
-  /* â”€â”€ Not found / inactive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Not found / inactive ------------------------------ */
   if (error === 'not_found' || (!error && !vehicle)) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-4 py-24 text-center">
@@ -117,11 +117,11 @@ function VehicleDetailPage() {
     );
   }
 
-  /* â”€â”€ Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Error ---------------------------------------------- */
   if (error) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-4 py-24 text-center">
-        <span className="text-4xl">âš ï¸</span>
+        <span className="text-4xl">⚠️</span>
         <p className="text-sm text-rose-500 dark:text-rose-400">Error: {error}</p>
         <Link
           to="/vehicles"
@@ -133,7 +133,7 @@ function VehicleDetailPage() {
     );
   }
 
-  /* â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Helpers -------------------------------------------- */
   const v = vehicle;
   const imgSrc = v.image_url
     ? `${BACKEND_URL}/${v.image_url.replace(/^\//, '')}`
@@ -146,7 +146,7 @@ function VehicleDetailPage() {
 
   return (
     <div className="mx-auto max-w-5xl animate-fade-in px-4 py-8 sm:py-12">
-      {/* â”€â”€ Back link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Back link ------------------------------------- */}
       <Link
         to="/vehicles"
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-400"
@@ -157,7 +157,7 @@ function VehicleDetailPage() {
         Back to Vehicles
       </Link>
 
-      {/* â”€â”€ Main grid: image + info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Main grid: image + info ----------------------- */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Image */}
         <div className="overflow-hidden rounded-2xl bg-gray-100 dark:bg-slate-800">
@@ -169,7 +169,7 @@ function VehicleDetailPage() {
             />
           ) : (
             <div className="flex h-64 w-full items-center justify-center sm:h-80 lg:h-[400px]">
-              <span className="text-5xl text-gray-300 dark:text-slate-600">ðŸš—</span>
+              <span className="text-5xl text-gray-300 dark:text-slate-600">🚗</span>
             </div>
           )}
         </div>
@@ -230,7 +230,7 @@ function VehicleDetailPage() {
         </div>
       </div>
 
-      {/* â”€â”€ Description â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Description ----------------------------------- */}
       {v.description && (
         <section className="mt-10">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
@@ -247,7 +247,7 @@ function VehicleDetailPage() {
         </section>
       )}
 
-      {/* â”€â”€ Specifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Specifications -------------------------------- */}
       {specs.length > 0 && (
         <section className="mt-6">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
@@ -277,7 +277,7 @@ function VehicleDetailPage() {
         </section>
       )}
 
-      {/* â”€â”€ Contact Dealer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Contact Dealer -------------------------------- */}
       <section className="mt-8">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-lg">
           <h2 className="flex items-center gap-2 text-xl font-bold text-gray-900 sm:text-2xl dark:text-white">
@@ -290,10 +290,10 @@ function VehicleDetailPage() {
             Interested in this vehicle? Send a message and the dealer will get back to you.
           </p>
 
-          {/* â”€â”€ Success state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* -- Success state ---------------------------- */}
           {submitted ? (
             <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-8 text-center dark:border-emerald-500/20 dark:bg-emerald-500/5">
-              <span className="text-4xl">âœ…</span>
+              <span className="text-4xl">✅</span>
               <p className="mt-3 text-base font-semibold text-emerald-700 dark:text-emerald-400">
                 Message sent!
               </p>
@@ -309,7 +309,7 @@ function VehicleDetailPage() {
               </button>
             </div>
           ) : !showForm ? (
-            /* â”€â”€ CTA button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- CTA button ---------------------------- */
             <button
               type="button"
               onClick={() => setShowForm(true)}
@@ -321,7 +321,7 @@ function VehicleDetailPage() {
               Contact Dealer
             </button>
           ) : (
-            /* â”€â”€ Inline form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+            /* -- Inline form --------------------------- */
             <form onSubmit={handleLeadSubmit} className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
               {/* Name */}
               <div className="sm:col-span-1">
@@ -381,7 +381,7 @@ function VehicleDetailPage() {
                   rows={4}
                   value={leadMessage}
                   onChange={(e) => setLeadMessage(e.target.value)}
-                  placeholder="Hi, I'm interested in this vehicleâ€¦"
+                  placeholder="Hi, I'm interested in this vehicle…"
                   className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>

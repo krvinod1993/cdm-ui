@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function CarCard({ car }) {
   const { id, name, brand, price, image_url } = car;
@@ -24,7 +24,7 @@ function CarCard({ car }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-100 dark:bg-slate-800/60">
-            <span className="text-3xl text-gray-400 dark:text-slate-600">ðŸš—</span>
+            <span className="text-3xl text-gray-400 dark:text-slate-600">🚗</span>
           </div>
         )}
       </div>
@@ -44,10 +44,10 @@ function CarCard({ car }) {
         {/* Price + CTA */}
         <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-3 dark:border-slate-800/60">
           <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
-            â‚¹{new Intl.NumberFormat('en-IN').format(price)}
+            ₹{new Intl.NumberFormat('en-IN').format(price)}
           </p>
           <span className="text-xs text-gray-400 transition group-hover:text-sky-600 dark:text-slate-400 dark:group-hover:text-sky-400">
-            View details â†’
+            View details →
           </span>
         </div>
       </div>

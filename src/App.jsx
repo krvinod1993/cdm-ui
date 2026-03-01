@@ -7,6 +7,7 @@ import Dealers from "./modules/public/pages/DealerPage";
 import DealerProfile from "./modules/public/pages/DealerProfile";
 import VehicleDetail from "./modules/public/pages/VehicleDetails";
 import DealerRegistration from "./modules/public/pages/DealerRegister";
+import LaunchPreview from "./modules/public/pages/LaunchPreview";
 import DealerDashboard from "./modules/dealer/pages/DealerDashboard";
 import DealerLogin from "./modules/dealer/pages/DealerLogin";
 import AddCar from "./modules/dealer/pages/AddCar";
@@ -27,6 +28,7 @@ function App() {
         <Route path="dealers/:dealerId" element={<DealerProfile />} />
         <Route path="dealers" element={<Dealers />} />
         <Route path="dealer/register" element={<DealerRegistration />} />
+        <Route path="launch-preview" element={<LaunchPreview />} />
       </Route>
 
       <Route path="/dealer/login" element={<DealerLogin />} />

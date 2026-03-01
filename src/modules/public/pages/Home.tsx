@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import HeroSection from '../../../shared/components/HeroSection';
 import CarCard from '../../../shared/components/CarCard';
 
-const BACKEND_URL = 'http://127.0.0.1:8000';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function Home() {
   const [cars, setCars] = useState([]);
@@ -27,10 +27,10 @@ function Home() {
 
   return (
     <div>
-      {/* â”€â”€ Section 1 â€” Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Section 1 — Hero --------------------------- */}
       <HeroSection />
 
-      {/* â”€â”€ Section 2 â€” Featured Cars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Section 2 — Featured Cars ------------------ */}
       <section className="mt-20 space-y-8 sm:mt-24">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -49,7 +49,7 @@ function Home() {
             className="inline-flex items-center gap-1 text-sm font-semibold text-amber-500 transition hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300"
           >
             View all inventory
-            <span className="transition-transform group-hover:translate-x-0.5">â†’</span>
+            <span className="transition-transform group-hover:translate-x-0.5">→</span>
           </Link>
         </div>
 
@@ -60,14 +60,14 @@ function Home() {
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20">
-            <span className="text-4xl">âš ï¸</span>
+            <span className="text-4xl">⚠️</span>
             <p className="text-sm text-rose-500 dark:text-rose-400">Error: {error}</p>
           </div>
         ) : featured.length === 0 ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-gray-200 bg-gray-50/50 px-6 py-20 dark:border-white/10 dark:bg-white/[0.02]">
-            <span className="text-5xl">ðŸš—</span>
+            <span className="text-5xl">🚗</span>
             <p className="text-base font-medium text-gray-600 dark:text-white/60">No cars listed yet</p>
-            <p className="text-sm text-gray-400 dark:text-white/30">Check back soon â€” dealers are adding new inventory daily.</p>
+            <p className="text-sm text-gray-400 dark:text-white/30">Check back soon — dealers are adding new inventory daily.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -78,7 +78,7 @@ function Home() {
         )}
       </section>
 
-      {/* â”€â”€ Section 3 â€” Why Choose Us â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Section 3 — Why Choose Us ------------------ */}
       <section className="mt-24 space-y-10 sm:mt-28">
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-500 dark:text-amber-400/80">
@@ -95,19 +95,19 @@ function Home() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           {[
             {
-              emoji: 'ðŸ›¡ï¸',
+              emoji: '🛡️',
               title: 'Verified Dealers',
               desc: 'Every dealer on our platform is verified and vetted so you can buy with complete confidence.',
             },
             {
-              emoji: 'ðŸ’°',
+              emoji: '💰',
               title: 'Transparent Pricing',
-              desc: 'No hidden charges, no surprises â€” see the real price upfront for every car listed.',
+              desc: 'No hidden charges, no surprises — see the real price upfront for every car listed.',
             },
             {
-              emoji: 'ðŸ“ž',
+              emoji: '📞',
               title: 'Direct Contact',
-              desc: 'Connect with dealers directly. No middlemen, no delays â€” just a straightforward buying experience.',
+              desc: 'Connect with dealers directly. No middlemen, no delays — just a straightforward buying experience.',
             },
           ].map((card) => (
             <div
@@ -128,7 +128,7 @@ function Home() {
         </div>
       </section>
 
-      {/* â”€â”€ Section 4 â€” Dealer CTA Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* -- Section 4 — Dealer CTA Banner -------------- */}
       <section className="mt-24 mb-4 sm:mt-28">
         <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-r from-amber-50 via-white to-amber-50 px-8 py-16 text-center sm:px-12 sm:py-20 dark:border-white/[0.06] dark:from-amber-500/10 dark:via-transparent dark:to-amber-500/10">
           <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-amber-200/30 blur-[80px] dark:bg-amber-500/10" />

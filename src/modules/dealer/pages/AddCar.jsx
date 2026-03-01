@@ -18,7 +18,7 @@ function AddCar() {
   const [preview, setPreview] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
-  /* â”€â”€ Fetch categories on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch categories on mount ----------------------- */
   useEffect(() => {
     api('/vehicle-categories')
       .then((data) => setCategories(Array.isArray(data) ? data : []))
@@ -124,9 +124,9 @@ function AddCar() {
 
         {/* Price */}
         <div className="space-y-1.5">
-          <label htmlFor="car-price" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Price (â‚¹) <span className="text-rose-500">*</span></label>
+          <label htmlFor="car-price" className="block text-sm font-medium text-gray-700 dark:text-slate-300">Price (₹) <span className="text-rose-500">*</span></label>
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-slate-500">â‚¹</span>
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 dark:text-slate-500">₹</span>
             <input id="car-price" type="number" required min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-8 pr-4 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500" placeholder="e.g. 35000" />
           </div>
         </div>
@@ -167,7 +167,7 @@ function AddCar() {
         {/* Actions */}
         <div className="flex items-center gap-3 border-t border-gray-200 pt-6 dark:border-slate-800">
           <button type="submit" disabled={formLoading} className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
-            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Addingâ€¦</>) : 'Add Vehicle'}
+            {formLoading ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Adding…</>) : 'Add Vehicle'}
           </button>
           <Link to="/dealer/vehicles" className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-slate-100">Cancel</Link>
         </div>

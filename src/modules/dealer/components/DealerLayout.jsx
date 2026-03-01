@@ -4,7 +4,7 @@ import { useTheme } from '../../../shared/contexts/ThemeContext';
 import { useAuth } from '../../../shared/contexts/AuthContext.jsx';
 import api from '../../../shared/services/api';
 
-/* â”€â”€ Sidebar nav items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* -- Sidebar nav items ------------------------------------ */
 const navItems = [
   {
     to: '/dealer/dashboard',
@@ -74,7 +74,7 @@ function DealerLayout() {
   const { isDark, toggleTheme } = useTheme();
   const { hasPermission, permissions, isAuthLoading } = useAuth();
 
-  /* â”€â”€ Filter nav items by permission (wait for auth to load) */
+  /* -- Filter nav items by permission (wait for auth to load) */
   const visibleNavItems = useMemo(() => {
     if (isAuthLoading) {
       // While permissions are loading, only show items that don't require permissions
@@ -89,7 +89,7 @@ function DealerLayout() {
     });
   }, [hasPermission, permissions, isAuthLoading]);
 
-  /* â”€â”€ Fetch lead count for sidebar badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* -- Fetch lead count for sidebar badge --------------- */
   useEffect(() => {
     api('/my-leads')
       .then((data) => {
