@@ -8,6 +8,11 @@ import DealerProfile from "./modules/public/pages/DealerProfile";
 import VehicleDetail from "./modules/public/pages/VehicleDetails";
 import DealerRegistration from "./modules/public/pages/DealerRegister";
 import LaunchPreview from "./modules/public/pages/LaunchPreview";
+import CustomerLogin from "./modules/public/pages/CustomerLogin";
+import CustomerRegister from "./modules/public/pages/CustomerRegister";
+import Wishlist from "./modules/customer/pages/Wishlist";
+import CustomerProfile from "./modules/public/pages/CustomerProfile";
+import ProtectedRoute from "./components/ProtectedRoute";
 import DealerDashboard from "./modules/dealer/pages/DealerDashboard";
 import DealerLogin from "./modules/dealer/pages/DealerLogin";
 import AddCar from "./modules/dealer/pages/AddCar";
@@ -29,6 +34,24 @@ function App() {
         <Route path="dealers" element={<Dealers />} />
         <Route path="dealer/register" element={<DealerRegistration />} />
         <Route path="launch-preview" element={<LaunchPreview />} />
+        <Route path="login" element={<CustomerLogin />} />
+        <Route path="/register" element={<CustomerRegister />} />
+        <Route
+          path="/wishlist"
+          element={
+            <ProtectedRoute>
+              <Wishlist />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <CustomerProfile />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route path="/dealer/login" element={<DealerLogin />} />

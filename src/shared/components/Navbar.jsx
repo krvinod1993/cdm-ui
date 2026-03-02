@@ -1,21 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext.tsx';
 
 function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp, embedded = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCustomerMenuOpen, setIsCustomerMenuOpen] = useState(false);
+  const [customer, setCustomer] = useState(null);
   const token = localStorage.getItem('access_token');
   const { isDark: contextIsDark, toggleTheme: contextToggleTheme } = useTheme();
   const isDark = isDarkProp ?? contextIsDark;
   const toggleTheme = toggleThemeProp ?? contextToggleTheme;
-  const { openAuthModal } = useAuth();
+  const customerName = customer?.name ?? customer?.full_name ?? customer?.email ?? 'Customer';
+  const customerAvatar = customer?.avatar;
+  const customerInitial = customerName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     navigate('/dealer/login', { replace: true });
+  };
+
+  const handleCustomerLogout = () => {
+    localStorage.removeItem('customer_access_token');
+    localStorage.removeItem('customer_profile');
+    setCustomer(null);
+    setIsCustomerMenuOpen(false);
+    navigate('/', { replace: true });
   };
 
   const linkClass = ({ isActive }) =>
@@ -33,7 +44,41 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp, embedded = f
     }`;
 
   useEffect(() => {
+    const stored = localStorage.getItem('customer_profile');
+    if (!stored) {
+      setCustomer(null);
+      return;
+    }
+
+    try {
+      setCustomer(JSON.parse(stored));
+    } catch {
+      setCustomer(null);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const stored = localStorage.getItem('customer_profile');
+      if (!stored) {
+        setCustomer(null);
+        return;
+      }
+
+      try {
+        setCustomer(JSON.parse(stored));
+      } catch {
+        setCustomer(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsCustomerMenuOpen(false);
   }, [location.pathname]);
 
   const navContent = (
@@ -87,12 +132,70 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp, embedded = f
             </NavLink>
           )}
 
-          <button
-            onClick={openAuthModal}
-            className="rounded-lg px-2 py-1.5 transition hover:text-sky-600 dark:hover:text-sky-400"
-          >
-            Sign In
-          </button>
+          {customer && (
+            <Link
+              to="/wishlist"
+              className="rounded-lg px-2 py-1.5 transition hover:text-sky-600 dark:text-slate-200 dark:hover:text-sky-400"
+            >
+              Wishlist
+            </Link>
+          )}
+
+          {customer ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCustomerMenuOpen((prev) => !prev)}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-2.5 py-1.5 transition hover:border-gray-400 dark:border-slate-600 dark:hover:border-slate-400"
+              >
+                {customerAvatar ? (
+                  <img
+                    src={customerAvatar}
+                    alt={customerName}
+                    className="h-7 w-7 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
+                    {customerInitial}
+                  </span>
+                )}
+                <span className="max-w-[120px] truncate text-sm font-medium text-gray-700 dark:text-slate-200">
+                  {customerName}
+                </span>
+              </button>
+
+              {isCustomerMenuOpen && (
+                <div className="absolute right-0 z-50 mt-2 w-40 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                  <Link
+                    to="/profile"
+                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    to="/wishlist"
+                    className="block rounded-lg px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Wishlist
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleCustomerLogout}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="rounded-lg px-2 py-1.5 transition hover:text-sky-600 dark:hover:text-sky-400"
+            >
+              Sign In
+            </button>
+          )}
 
           <button
             onClick={toggleTheme}
@@ -157,12 +260,48 @@ function Navbar({ isDark: isDarkProp, toggleTheme: toggleThemeProp, embedded = f
                 Dealer Login
               </NavLink>
             )}
-            <button
-              onClick={openAuthModal}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
-            >
-              Sign In
-            </button>
+            {customer ? (
+              <div className="w-full rounded-lg border border-gray-200 p-2 dark:border-slate-700">
+                <div className="mb-2 flex items-center gap-2 px-1">
+                  {customerAvatar ? (
+                    <img
+                      src={customerAvatar}
+                      alt={customerName}
+                      className="h-7 w-7 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">
+                      {customerInitial}
+                    </span>
+                  )}
+                  <span className="truncate text-sm font-medium text-gray-700 dark:text-slate-200">
+                    {customerName}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to="/profile" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                    Profile
+                  </Link>
+                  <Link to="/wishlist" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800">
+                    Wishlist
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleCustomerLogout}
+                    className="rounded-lg border border-rose-500/60 px-3 py-2 text-sm font-semibold text-rose-500 transition hover:bg-rose-500/10 dark:text-rose-400"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroSection from '../../../shared/components/HeroSection';
-import CarCard from '../../../shared/components/CarCard';
+import VehicleCard from '../components/VehicleCard';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 function Home() {
   const [cars, setCars] = useState([]);
+  const [wishlistIds, setWishlistIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -21,6 +22,32 @@ function Home() {
         setLoading(false);
       })
       .catch((err) => { setError(err.message); setLoading(false); });
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('customer_access_token');
+    if (!token) return;
+
+    fetch(`${BACKEND_URL}/api/customer/wishlist`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => {
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data.items)
+            ? data.items
+            : Array.isArray(data.data)
+              ? data.data
+              : [];
+        const ids = list
+          .map((item) => item.vehicle_id ?? item.id)
+          .filter((id) => typeof id === 'number');
+        setWishlistIds(ids);
+      })
+      .catch(() => {});
   }, []);
 
   const featured = cars.slice(0, 6);
@@ -72,7 +99,12 @@ function Home() {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featured.map((car) => (
-              <CarCard key={car.id} car={car} />
+              <VehicleCard
+                key={car.id}
+                vehicle={car}
+                wishlistIds={wishlistIds}
+                setWishlistIds={setWishlistIds}
+              />
             ))}
           </div>
         )}
